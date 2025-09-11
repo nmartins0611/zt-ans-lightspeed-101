@@ -5,16 +5,22 @@ antora:
   dir: www
   modules:
     - name: module-01
-      label: "Terraform and Ansible Automation Platform 2.5"
+      label: "Configuring Ansible Lightspeed in Visual Studio Code"
       solveButton: false
     - name: module-02
-      label: "Create a Terraform-enabled Execution Environment"
+      label: "Deploy and Configure Cockput using Ansible Lightspeed"
       solveButton: false
     - name: module-03
-      label: "OPTIONAL - Terraform Basics"
+      label: "PostgreSQL Server and PG Admin container"
       solveButton: false
     - name: module-04
-      label: "OPTIONAL - Terraform and the Certified Collection for Terraform"
+      label: "Provision an EC2 instance"
+      solveButton: false
+    - name: module-05
+      label: "Provision an Azure VM"
+      solveButton: false
+    - name: module-06
+      label: "Playground and Model customization"
       solveButton: false
 
 tabs:
@@ -25,7 +31,5 @@ tabs:
   - name: VS Ccode
     url: https://vscode-${guid}.${domain}
     external: false
-  - name: "TERMINAL"
-    url: /wetty_vscode
   - name: Cloud (AWS)
     url: /cloud
