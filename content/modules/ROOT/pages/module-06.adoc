@@ -1,0 +1,154 @@
+= Lab Guide: Ansible Lightspeed Playground
+:doctype: book
+:notoc:
+:toc-title: Table of Contents
+:nosectnums:
+:icons: font
+
+_This guide provides an overview of the Ansible Lightspeed playground environment and instructions for exploring its features._
+
+---
+
+== Introduction and Setup
+
+This challenge provides a playground demo environment for the Ansible Lightspeed with IBM watsonx Code Assistant commercial service. This is for you to experiment with the use cases that best suit your workflows.
+
+All demo content is available in the link:https://github.com/ansible/ansible-lightspeed-demos[Ansible Lightspeed demos repository].
+
+[IMPORTANT]
+====
+The login credentials for all services in this lab are:
+
+* **Username:** `student`
+* **Password:** `learn_ansible`
+====
+
+[NOTE]
+====
+This lab environment is ephemeral and will be deleted as soon as the time limit is reached.
+====
+
+---
+
+== Model Customization Overview
+
+This lab also provides a video reference to **model customization**, a powerful feature of Ansible Lightspeed. Model customization lets you change the behavior of the default AI model by training it with your organization's existing automation content. This is a simple three-step process:
+
+.   **Create training data** from your Ansible automation code using the `ansible-content-parser` CLI tool.
+.   **Feed the training data** to the default model to customize it, using the IBM watsonx.ai Tuning Studio.
+.   **Use the new model ID** from the Tuning Studio in your Ansible extension settings in Visual Studio Code.
+
+NOTE: The lab includes the following video for reference: `../assets/AnsibleLightspeed_ModelCustomization.mp4`.
+
+---
+
+== The Playground Environment
+
+This lab is designed as a "choose your own adventure" playground. The following tabs are available for you to explore.
+
+[cols="1,3a", options="header"]
+|===
+| Tab name | Description
+| Controller | An instance of Ansible Automation Platform controller.
+| RHEL | A Red Hat Enterprise Linux instance with VS Code installed.
+| Repo | A Gitea repository containing the `ansible-lightspeed-demos` repo.
+| PGAdmin | The pgAdmin UI used in the PostgreSQL and Podman demo.
+| Cockpit | The Cockpit UI used in the Cockpit installation demo.
+| Cloud | A page with credentials for the AWS and Azure accounts used in the cloud demos.
+|===
+
+---
+
+== How to Run a Demo
+
+All instructions are also available in the link:https://github.com/ansible/ansible-lightspeed-demos[README of the repository].
+
+=== Select a Demo in VS Code
+
+.   **Open VS Code** in the `RHEL` tab. The `README` landing page lists the available demos and instructions.
++
+image::../assets/vscode_landing_page.png[VS Code landing page with demo instructions, opts="border"]
+
+.   **Navigate to a demo folder.** Each demo is located in a specific directory under the `playbooks` folder (e.g., `playbooks/infra/cockpit`). The repository folder structure is as follows:
++
+[source,bash]
+----
+.
+└── playbooks/
+    └── <domain>/
+        └── <demo_name>/
+            ├── demo_<playbook_name>.yml <-- Initial Ansible content for demo.
+            ├── solution_<playbook_name>.yml <-- Tested Ansible content for comparison.
+----
+
+.   **Select the demo playbook.** Open the `demo_<playbook_name>.yml` file and follow the steps outlined within it to complete the demo.
+
+=== Execute the Playbook
+
+You can choose to run the `demo_*.yml` Playbook using either **automation controller** or **`ansible-navigator`**.
+
+==== Option 1: Using Automation Controller
+
+.   **Commit and push the playbook.** In Visual Studio Code, **click** the **Source Control** icon, **stage** your changes by clicking the **+** icon, enter a commit message, and **click** **Commit** and **Sync Changes**.
++
+image:../assets/demo_install_cockpit-source_control3.png[Committing changes in VS Code, opts="border"]
+
+.   **Run the corresponding Job Template.** Each demo has an accompanying job template in the controller.
++
+[cols="1a,1a", options="header"]
+|===
+| Job Template name | Demo Playbook
+| Deploy monitoring | `playbooks/infra/cockpit/demo_install_cockpit.yml`
+| Deploy PostgreSQL and PG Admin | `playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml`
+| Provision EC2 instance | `playbooks/cloud/aws/demo_provision_ec2_instance.yml`
+| Provision Azure VM | `playbooks/cloud/azure/demo_provision_azure_vm.yml`
+|===
++
+Go to the **Controller** tab, navigate to **Templates**, and **click** the launch icon (🚀) next to the appropriate Job Template.
+
+==== Option 2: Using ansible-navigator
+
+.   **Open a terminal** in VS Code by clicking **Terminal** → **New Terminal**.
++
+image:../assets/vscode_open_terminal.png[Opening a new terminal, opts="border"]
+
+.   **Navigate to the demo folder.** For example:
++
+[source,bash]
+----
+cd playbooks/infra/install_cockpit
+----
+
+.   **Run the playbook.** For example:
++
+[source,bash]
+----
+ansible-navigator run demo_install_cockpit.yml
+----
++
+image::../assets/install_cockpit_navigator_sucess.png[Successful run in ansible-navigator, opts="border"]
+
+---
+
+== Help and Additional Information
+
+=== Need Help?
+
+* You can expand the images by clicking on them for a closer look.
+* Solution playbooks are located under the `solution_playbooks` folder in VS Code.
+
+.How to Generate Ansible Lightspeed Suggestions
+[%collapsible]
+====
+* **Single Task Suggestions:** Uncomment a task's `- name:` line by removing the `#` or pressing `CTRL + /`. Place your cursor at the end of the line, press `ENTER` to generate a suggestion, and press `TAB` to accept it.
+
+* **Multi-Task Suggestions:** For a commented line containing multiple tasks separated by `&`, do *not* uncomment it. Simply place your cursor at the end of the line, press `ENTER`, and press `TAB` to accept the suggestion.
+====
+
+=== Complete the Lab
+
+Congratulations! You've explored the Ansible Lightspeed playground. Press the `Next` button to close the lab.
+
+=== Troubleshooting
+
+If you have encountered an issue, please link:https://github.com/ansible/instruqt/issues/new?labels=getting-started-lightspeed-internal&title=Getting+started+with+Ansible+Lightspeed+Internal+Lab+-+issue[open an issue on GitHub].
