@@ -6,7 +6,7 @@ nav:
 
 asciidoc:
   attributes:
-    lab_name: "Terraform & Red Hat Ansible Automation Platform (AAP 2.5)"
+    lab_name: "Intro to Ansible Lightspeed with IBM watsonx Code Assistant"
     release-version: master
     page-pagination: true
     my_var: "foo"
