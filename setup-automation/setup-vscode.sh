@@ -25,5 +25,6 @@ EOF
 
 systemctl start code-server
 #Enable linger for the user `rhel`
-code-server --install-extension redhat.vscode-redhat-account
+wget "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/redhat/vsextensions/vscode-redhat-account/latest/vspackage" -O redhat-account.vsix
+code-server --install-extension redhat-account.vsix
 loginctl enable-linger rhel
