@@ -25,4 +25,5 @@ EOF
 
 systemctl start code-server
 #Enable linger for the user `rhel`
+code-server --install-extension redhat.vscode-redhat-account
 loginctl enable-linger rhel
