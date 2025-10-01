@@ -30,6 +30,6 @@ tabs:
   #   url: https://gitea-${guid}.${domain}/
   - name: VS Ccode
     url: https://vscode-${guid}.${domain}
-    external: false
+    external: true
   - name: Cloud (AWS)
     url: /cloud
