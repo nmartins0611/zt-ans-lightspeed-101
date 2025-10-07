@@ -28,6 +28,10 @@ systemctl start code-server
 wget "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/redhat/vsextensions/vscode-redhat-account/latest/vspackage" -O redhat-account.vsix
 code-server --install-extension redhat-account.vsix
 loginctl enable-linger rhel
+dnf install ansible-core nano git
+
+git clone https://gitea:3000/ansible-lightspeed-demos /home/rhel/acme_corp/
+
 
 
 # This is just a stop-gap fix
