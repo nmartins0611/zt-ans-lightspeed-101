@@ -30,7 +30,7 @@ code-server --install-extension redhat-account.vsix
 loginctl enable-linger rhel
 dnf install ansible-core nano git -y
 
-git clone https://gitea:3000/ansible-lightspeed-demos /home/rhel/acme_corp/
+##git clone https://gitea:3000/ansible-lightspeed-demos /home/rhel/acme_corp/
 
 
 
