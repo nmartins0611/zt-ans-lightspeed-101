@@ -30,6 +30,56 @@ code-server --install-extension redhat-account.vsix
 loginctl enable-linger rhel
 dnf install ansible-core nano git -y
 
+
+# Create a playbook for the user to execute
+
+tee /tmp/setup.yml << EOF
+### Automation Controller setup 
+###
+---
+- name: Setup Controller
+  hosts: localhost
+  connection: local
+  collections:
+    - ansible.controller
+
+  vars:
+    aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') | default('AWS_ACCESS_KEY_ID_NOT_FOUND', true) }}"
+    aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') | default('AWS_SECRET_ACCESS_KEY_NOT_FOUND', true) }}"
+    aws_default_region: "{{ lookup('env', 'AWS_DEFAULT_REGION') | default('AWS_DEFAULT_REGION_NOT_FOUND', true) }}"
+    quay_username: "{{ lookup('env', 'QUAY_USERNAME') | default('QUAY_USERNAME_NOT_FOUND', true) }}"
+    quay_password: "{{ lookup('env', 'QUAY_PASSWORD') | default('QUAY_PASSWORD_NOT_FOUND', true) }}"
+    azure_subscription: "{{ lookup('env', 'AZURE_SUBSCRIPTION') | default('AZURE_SUBSCRIPTION_NOT_FOUND', true) }}"
+    azure_tenant: "{{ lookup('env', 'AZURE_TENANT') | default('AZURE_TENANT_NOT_FOUND', true) }}"
+    azure_client_id: "{{ lookup('env', 'AZURE_CLIENT_ID') | default('AZURE_CLIENT_ID_NOT_FOUND', true) }}"
+    azure_password: "{{ lookup('env', 'AZURE_PASSWORD') | default('AZURE_PASSWORD_NOT_FOUND', true) }}"
+    azure_resourcegroup: "{{ lookup('env', 'AZURE_RESOURCEGROUP') | default('AZURE_RESOURCEGROUP_NOT_FOUND', true) }}"
+
+  vars_files:
+    - track_vars.yml
+    - vault_track_vars.yml
+
+  vars:
+      controller_login: &controller_login
+      controller_username: "{{ controller_username }}"
+      controller_password: "{{ controller_password }}"
+      controller_host: "{{ controller_hostname }}"
+      validate_certs: "{{ controller_validate_certs }}"
+
+  tasks:
+ 
+
+
+
+
+
+
+EOF
+
+
+
+
+
 ##git clone https://gitea:3000/ansible-lightspeed-demos /home/rhel/acme_corp/
 
 
