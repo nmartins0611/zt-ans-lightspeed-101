@@ -30,12 +30,10 @@ dnf install ansible-core nano git -y
 
 # Install required VSCode extensions
 echo "Installing Red Hat Authentication extension..."
-wget "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/redhat/vsextensions/vscode-redhat-account/latest/vspackage" -O /tmp/redhat-account.vsix
-sudo -u rhel code-server --install-extension /tmp/redhat-account.vsix
+sudo -u rhel code-server --install-extension redhat.vscode-redhat-account
 
 echo "Installing Ansible extension..."
-wget "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/redhat/vsextensions/ansible/latest/vspackage" -O /tmp/ansible.vsix
-sudo -u rhel code-server --install-extension /tmp/ansible.vsix
+sudo -u rhel code-server --install-extension redhat.ansible
 
 
 # Create a playbook for the user to execute
