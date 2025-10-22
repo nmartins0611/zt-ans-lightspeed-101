@@ -28,8 +28,10 @@ tabs:
     url: https://control-${guid}.${domain}/
   - name: gitea
     url: https://gitea-${guid}.${domain}/
-  - name: VS Ccode
+  - name: VS Code
     url: https://vscode-${guid}.${domain}
     external: true
+  - name: Cockpit
+    url: http://cockpit-${guid}.${domain}/
   - name: Cloud (AWS)
     url: /cloud

@@ -132,7 +132,7 @@ all:
     ansible_host_key_checking: false
 INVENTORY_EOF
 
-# Update cockpit inventory file for the new lab platform
+# Update cockpit inventory file for the new lab platform (target control VM)
 echo "Updating cockpit playbook inventory..."
 COCKPIT_INVENTORY="/home/rhel/${REPO_NAME}/playbooks/infra/install_cockpit/inventory/inventory.yml"
 if [ -f "${COCKPIT_INVENTORY}" ]; then
@@ -142,12 +142,14 @@ all:
   children:
     rhel:
       hosts:
-        localhost:
-          ansible_connection: local
+        control:
+          ansible_host: control.lab
   vars:
     ansible_user: rhel
+    ansible_password: ansible123!
     ansible_become_password: ansible123!
     ansible_host_key_checking: false
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 COCKPIT_INVENTORY_EOF
     echo "  Updated ${COCKPIT_INVENTORY}"
 else

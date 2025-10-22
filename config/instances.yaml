@@ -107,6 +107,12 @@ virtualmachines:
             protocol: TCP
             targetPort: 443
             name: control-https
+      - name: control-cockpit
+        ports:
+          - port: 9090
+            protocol: TCP
+            targetPort: 9090
+            name: cockpit
     routes:
       - name: control-https
         host: control
@@ -149,6 +155,10 @@ virtualmachines:
           fH5qke1XR5LFGpndX1GuSVBhdZq94x0aGXWTQCDNIPQ3QtrQ64PBF1vRFdJ6o/FI
           uEOWpQhGYHMC0A==
           -----END CERTIFICATE-----
+      - name: control-cockpit
+        host: cockpit
+        service: control-cockpit
+        targetPort: 9090
   - name: "vscode"
     image: "devtools-ansible"
     memory: "16G"
