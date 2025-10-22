@@ -36,18 +36,32 @@ containers:
         emptyDir: {}
       - name: gitea-varlib
         emptyDir: {}
-    commands: 
-        - gitea admin user create --admin --username gitea --password gitea --email dummy@dummy.com --must-change-password=false
-        - >
-          curl -X POST -H "accept: application/json" -H "Content-Type: application/json"
-          -u 'gitea:gitea' 
-          -d '{"username": "student", "full_name": "student", "description": "student"}'
-          http://localhost:3000/api/v1/orgs
-        - >
-          curl -X POST -H "accept: application/json" -H "Content-Type: application/json"
-          -u 'gitea:gitea'
-          -d '{"clone_addr": "https://github.com/ansible/ansible-lightspeed-demos", "repo_name": "acme_corp", "owner": "student", "uid": 2, "private": false}'
-          http://localhost:3000/api/v1/repos/migrate
+    commands:
+      - >
+        gitea admin user create --admin --username gitea --password gitea
+        --email dummy@dummy.com --must-change-password=false
+      - >
+        curl -X POST -H "accept: application/json"
+        -H "Content-Type: application/json"
+        -u 'gitea:gitea'
+        -d '{"username": "student", "full_name": "student",
+        "description": "student"}'
+        http://localhost:3000/api/v1/orgs
+      - >
+        curl -X POST -H "accept: application/json"
+        -H "Content-Type: application/json"
+        -u 'gitea:gitea'
+        -d '{"clone_addr":
+        "https://github.com/ansible/ansible-lightspeed-demos",
+        "repo_name": "acme_corp", "owner": "student",
+        "uid": 2, "private": false}'
+        http://localhost:3000/api/v1/repos/migrate
+      - >
+        curl -X PATCH -H "accept: application/json"
+        -H "Content-Type: application/json"
+        -u 'gitea:gitea'
+        -d '{"default_branch": "devel"}'
+        http://localhost:3000/api/v1/repos/student/acme_corp
     memory: 2Gi
     services:
       - name: gitea
