@@ -28,6 +28,17 @@ systemctl start code-server
 loginctl enable-linger rhel
 dnf install ansible-core nano git -y
 
+# Set Python 3.11 as the default python3 using alternatives
+echo "Setting Python 3.11 as default python3..."
+alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1
+alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 2
+alternatives --set python3 /usr/bin/python3.11
+
+# Remove conflicting ansible-core RPM package (uses Python 3.9)
+# We use the pip-installed ansible-core 2.18.6 with Python 3.11 instead
+echo "Removing RPM ansible-core package to avoid version conflicts..."
+dnf remove -y ansible-core
+
 # Install required VSCode extensions
 echo "Installing Red Hat Authentication extension..."
 sudo -u rhel code-server --install-extension redhat.vscode-redhat-account
