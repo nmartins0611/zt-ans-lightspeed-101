@@ -32,6 +32,6 @@ tabs:
     url: https://vscode-${guid}.${domain}
     external: true
   - name: Cockpit
-    url: http://cockpit-${guid}.${domain}/
+    url: https://cockpit-${guid}.${domain}/
   - name: Cloud (AWS)
     url: /cloud
