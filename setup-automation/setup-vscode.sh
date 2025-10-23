@@ -156,10 +156,61 @@ else
     echo "  Warning: ${COCKPIT_INVENTORY} not found"
 fi
 
+# Update apache inventory file for the new lab platform (target control VM)
+echo "Updating apache playbook inventory..."
+APACHE_INVENTORY="/home/rhel/${REPO_NAME}/playbooks/infra/install_apache/inventory/inventory.yml"
+if [ -f "${APACHE_INVENTORY}" ]; then
+    sudo -u rhel tee "${APACHE_INVENTORY}" > /dev/null << 'APACHE_INVENTORY_EOF'
+---
+all:
+  children:
+    rhel:
+      hosts:
+        control:
+          ansible_host: control.lab
+  vars:
+    ansible_user: rhel
+    ansible_password: ansible123!
+    ansible_become_password: ansible123!
+    ansible_host_key_checking: false
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+APACHE_INVENTORY_EOF
+    echo "  Updated ${APACHE_INVENTORY}"
+else
+    echo "  Warning: ${APACHE_INVENTORY} not found"
+fi
+
+# Update postgresql/pgadmin inventory file for the new lab platform (target control VM)
+echo "Updating postgresql/pgadmin playbook inventory..."
+PGSQL_INVENTORY="/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml"
+if [ -f "${PGSQL_INVENTORY}" ]; then
+    sudo -u rhel tee "${PGSQL_INVENTORY}" > /dev/null << 'PGSQL_INVENTORY_EOF'
+---
+all:
+  children:
+    rhel:
+      hosts:
+        control:
+          ansible_host: control.lab
+  vars:
+    ansible_user: rhel
+    ansible_password: ansible123!
+    ansible_become_password: ansible123!
+    ansible_host_key_checking: false
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+PGSQL_INVENTORY_EOF
+    echo "  Updated ${PGSQL_INVENTORY}"
+else
+    echo "  Warning: ${PGSQL_INVENTORY} not found"
+fi
+
 # Commit and push .gitignore and updated inventory files to remote
 echo "Committing and pushing configuration updates..."
 cd /home/rhel/${REPO_NAME}
-sudo -u rhel git add .gitignore inventory.yml playbooks/infra/install_cockpit/inventory/inventory.yml
+sudo -u rhel git add .gitignore inventory.yml \
+    playbooks/infra/install_cockpit/inventory/inventory.yml \
+    playbooks/infra/install_apache/inventory/inventory.yml \
+    playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml
 sudo -u rhel git commit -m "Update inventory and gitignore for new lab platform" || true
 sudo -u rhel git push origin devel || true
 
@@ -247,47 +298,8 @@ tee /tmp/setup.yml << 'PLAYBOOK_EOF'
     #     retries: 20
     #     delay: 1
 
-        #  Temp
-        - name: Remove current repo dir
-          ansible.builtin.file:
-            state: absent
-            path: "~rhel/acme_corp"
-          become_user: rhel
-
-        # # temp
-        - name: Clone repository to rhel # noqa latest[git]
-          environment:
-            GIT_SSL_NO_VERIFY: true
-          ansible.builtin.git:
-            repo: "{{ gitea_app_url }}/{{ gitea_org }}/{{ gitea_repo_name }}"
-            dest: "~rhel/acme_corp"
-          become_user: rhel
-
-        # temp or rh1 branch
-        - name: Temp - checkout devel
-          ansible.builtin.command:
-            # TODO fix to correct branch
-            cmd: git checkout devel
-            chdir: "~rhel/{{ gitea_repo_name }}"
-          become_user: rhel
-        # temp
-        - name: Copy VS Code workspace settings to repo
-          ansible.builtin.copy:
-            src: "/opt/setup-scripts/{{ track_slug }}/files/.vscode"
-            dest: "~rhel/{{ gitea_repo_name }}/"
-            remote_src: true
-            owner: rhel
-            group: rhel
-            directory_mode: "755"
-            mode: "644"
-        # # temp
-        - name: Fix directory permissions - {{ gitea_repo_name }}
-          ansible.builtin.file:
-            path: "~rhel/{{ gitea_repo_name }}/.vscode"
-            state: directory
-            owner: rhel
-            group: rhel
-            mode: "755"
+    # NOTE: Git clone, branch checkout, and .vscode setup are handled by bash script above
+    # The following tasks are for runtime challenge setup/solve operations only
 
     - name: Solve Overwrite demo Playbooks with solution playbooks - {{ gitea_repo_name }}
       ansible.builtin.copy:
