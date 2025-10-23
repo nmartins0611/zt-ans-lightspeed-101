@@ -107,7 +107,7 @@ virtualmachines:
             protocol: TCP
             targetPort: 443
             name: control-https
-      - name: control-cockpit
+      - name: cockpit
         ports:
           - port: 9090
             protocol: TCP
@@ -155,10 +155,13 @@ virtualmachines:
           fH5qke1XR5LFGpndX1GuSVBhdZq94x0aGXWTQCDNIPQ3QtrQ64PBF1vRFdJ6o/FI
           uEOWpQhGYHMC0A==
           -----END CERTIFICATE-----
-      - name: control-cockpit
+      - name: cockpit
         host: cockpit
-        service: control-cockpit
+        service: cockpit
         targetPort: 9090
+        tls: true
+        tls_termination: Edge
+        
   - name: "vscode"
     image: "devtools-ansible"
     memory: "16G"
