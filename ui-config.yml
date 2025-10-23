@@ -33,5 +33,7 @@ tabs:
     external: true
   - name: Cockpit
     url: https://cockpit-${guid}.${domain}/
+  - name: PgAdmin
+    url: https://pgadmin-${guid}.${domain}/
   - name: Cloud (AWS)
     url: /cloud

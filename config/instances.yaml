@@ -113,6 +113,12 @@ virtualmachines:
             protocol: TCP
             targetPort: 9090
             name: cockpit
+      - name: control-pgadmin
+        ports:
+          - port: 8083
+            protocol: TCP
+            targetPort: 8083
+            name: pgadmin
     routes:
       - name: control-https
         host: control
@@ -159,6 +165,14 @@ virtualmachines:
         host: cockpit
         service: control-cockpit
         targetPort: 9090
+        tls: true
+        tls_termination: Edge
+      - name: control-pgadmin
+        host: pgadmin
+        service: control-pgadmin
+        targetPort: 8083
+        tls: true
+        tls_termination: Edge
   - name: "vscode"
     image: "devtools-ansible"
     memory: "16G"
