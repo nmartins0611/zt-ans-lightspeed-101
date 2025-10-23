@@ -34,7 +34,7 @@ EOF
 systemctl start code-server
 #Enable linger for the user `rhel`
 loginctl enable-linger rhel
-dnf install ansible-core nano git -y
+dnf install ansible-core nano git python3-firewall -y
 
 # Set Python 3.11 as the default python3 using alternatives
 echo "Setting Python 3.11 as default python3..."
@@ -212,14 +212,31 @@ else
     echo "  Warning: ${PGSQL_INVENTORY} not found"
 fi
 
+# Remove firewall task from PostgreSQL playbooks (firewalld is disabled on vscode VM)
+echo "Removing firewall tasks from PostgreSQL playbooks..."
+PGSQL_DEMO="/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml"
+PGSQL_SOLUTION="/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/solution_install_pgsql_pgadmin.yml"
+
+if [ -f "${PGSQL_DEMO}" ]; then
+    sudo -u rhel sed -i '/Allow the traffic through the firewall/,/immediate: true/d' "${PGSQL_DEMO}"
+    echo "  Removed firewall task from ${PGSQL_DEMO}"
+fi
+
+if [ -f "${PGSQL_SOLUTION}" ]; then
+    sudo -u rhel sed -i '/Allow the traffic through the firewall/,/immediate: true/d' "${PGSQL_SOLUTION}"
+    echo "  Removed firewall task from ${PGSQL_SOLUTION}"
+fi
+
 # Commit and push .gitignore and updated inventory files to remote
 echo "Committing and pushing configuration updates..."
 cd /home/rhel/${REPO_NAME}
 sudo -u rhel git add .gitignore inventory.yml \
     playbooks/infra/install_cockpit/inventory/inventory.yml \
     playbooks/infra/install_apache/inventory/inventory.yml \
-    playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml
-sudo -u rhel git commit -m "Update inventory and gitignore for new lab platform" || true
+    playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml \
+    playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml \
+    playbooks/infra/install_pgsql_and_pgadmin/solution_install_pgsql_pgadmin.yml
+sudo -u rhel git commit -m "Update inventory and playbooks for new lab platform" || true
 sudo -u rhel git push origin devel || true
 
 # Pull execution environment image from Quay
