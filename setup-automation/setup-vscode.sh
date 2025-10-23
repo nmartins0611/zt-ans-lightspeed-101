@@ -244,6 +244,29 @@ echo "Pulling execution environment image from Quay..."
 EE_IMAGE="quay.io/acme_corp/lightspeed-101_ee:latest"
 sudo -u rhel podman pull ${EE_IMAGE}
 
+# Configure cloud provider environment variables for rhel user
+echo "Configuring cloud provider environment variables for rhel user..."
+sudo -u rhel tee /home/rhel/.cloud_env > /dev/null << CLOUD_ENV_EOF
+# AWS credentials for cloud playbooks
+export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+
+# Azure credentials for cloud playbooks
+export AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION}"
+export AZURE_TENANT="${AZURE_TENANT}"
+export AZURE_CLIENT_ID="${AZURE_CLIENT_ID}"
+export AZURE_SECRET="${AZURE_PASSWORD}"
+export AZURE_RESOURCE_GROUP="${AZURE_RESOURCEGROUP}"
+CLOUD_ENV_EOF
+
+# Add sourcing of cloud env to .bashrc if not already present
+if ! grep -q ".cloud_env" /home/rhel/.bashrc; then
+    echo "" | sudo -u rhel tee -a /home/rhel/.bashrc > /dev/null
+    echo "# Source cloud provider credentials" | sudo -u rhel tee -a /home/rhel/.bashrc > /dev/null
+    echo "[ -f ~/.cloud_env ] && source ~/.cloud_env" | sudo -u rhel tee -a /home/rhel/.bashrc > /dev/null
+fi
+
 echo "Dev machine setup complete!"
 echo "Repository cloned to: /home/rhel/${REPO_NAME}"
 echo "Execution environment ready: ${EE_IMAGE}"
