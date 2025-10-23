@@ -185,6 +185,7 @@ virtualmachines:
         value: "isolated"
     networks:
       - default
+      - secondary
     services:
       # - name: vscode-http
       #   ports:

@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# Configure secondary network interface for PostgreSQL communication
+nmcli connection add type ethernet con-name eth1 ifname eth1 ipv4.addresses 192.168.1.12/24 ipv4.method manual connection.autoconnect yes
+nmcli connection up eth1
+echo "192.168.1.10 control.lab control" >> /etc/hosts
+echo "192.168.1.11 netbox.lab netbox" >> /etc/hosts
+echo "192.168.1.12 devtools.lab devtools" >> /etc/hosts
+
 curl -k  -L https://${SATELLITE_URL}/pub/katello-server-ca.crt -o /etc/pki/ca-trust/source/anchors/${SATELLITE_URL}.ca.crt
 update-ca-trust
 rpm -Uhv https://${SATELLITE_URL}/pub/katello-ca-consumer-latest.noarch.rpm
@@ -180,7 +188,7 @@ else
     echo "  Warning: ${APACHE_INVENTORY} not found"
 fi
 
-# Update postgresql/pgadmin inventory file for the new lab platform (target control VM)
+# Update postgresql/pgadmin inventory file for the new lab platform (target vscode VM via secondary network)
 echo "Updating postgresql/pgadmin playbook inventory..."
 PGSQL_INVENTORY="/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml"
 if [ -f "${PGSQL_INVENTORY}" ]; then
@@ -190,8 +198,8 @@ all:
   children:
     rhel:
       hosts:
-        control:
-          ansible_host: control.lab
+        devtools:
+          ansible_host: devtools.lab
   vars:
     ansible_user: rhel
     ansible_password: ansible123!
