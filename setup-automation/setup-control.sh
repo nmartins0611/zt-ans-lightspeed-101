@@ -29,6 +29,17 @@ else
     fi
 fi
 
+# Pre-configure Cockpit for route access
+# This allows Cockpit to accept connections from the OpenShift route
+# The Lightspeed-generated playbook will install Cockpit, which will use this config
+echo "Pre-configuring Cockpit for route access..."
+mkdir -p /etc/cockpit
+cat > /etc/cockpit/cockpit.conf << COCKPIT_EOF
+[WebService]
+Origins = https://cockpit-${GUID}.${DOMAIN}
+AllowUnencrypted = true
+COCKPIT_EOF
+echo "Cockpit configuration created at /etc/cockpit/cockpit.conf"
 
 # Create a playbook for the user to execute
 
