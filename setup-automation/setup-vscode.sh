@@ -166,7 +166,7 @@ sudo -u rhel git push origin devel || true
 # Pull execution environment image from Quay
 echo "Pulling execution environment image from Quay..."
 EE_IMAGE="quay.io/acme_corp/lightspeed-101_ee:latest"
-podman pull ${EE_IMAGE}
+sudo -u rhel podman pull ${EE_IMAGE}
 
 echo "Dev machine setup complete!"
 echo "Repository cloned to: /home/rhel/${REPO_NAME}"
