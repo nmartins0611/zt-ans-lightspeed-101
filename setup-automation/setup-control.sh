@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Ensure standard PATH is set (needed when run via different methods)
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 systemctl stop systemd-tmpfiles-setup.service
 systemctl disable systemd-tmpfiles-setup.service
 
@@ -100,7 +103,7 @@ echo "Fetching cloud environment variables from vscode node..."
 
 # Use sshpass to connect to vscode node and retrieve cloud environment variables
 # The vscode node setup creates /home/rhel/.cloud_env with the RHDP environment variables
-sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat /home/rhel/.cloud_env" > /tmp/.cloud_env
+/usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat /home/rhel/.cloud_env" > /tmp/.cloud_env
 
 if [ -f /tmp/.cloud_env ]; then
   echo "Cloud environment variables retrieved from vscode node"
@@ -117,7 +120,7 @@ if [ -f /tmp/.cloud_env ]; then
 
   # Run AWS/Azure resource preparation playbooks on vscode node where credentials are available
   echo "Setting up AWS resources on vscode node..."
-  sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/aws/prepare_aws_environment.yml -m stdout"
+  /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/aws/prepare_aws_environment.yml -m stdout"
 
   if [ $? -eq 0 ]; then
     echo "AWS resources created successfully"
@@ -126,14 +129,14 @@ if [ -f /tmp/.cloud_env ]; then
   fi
 
   echo "Setting up Azure resources on vscode node..."
-  sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/azure/prepare_azure_environment.yml -m stdout"
+  /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/azure/prepare_azure_environment.yml -m stdout"
 
   if [ $? -eq 0 ]; then
     echo "Azure resources created successfully"
 
     # Fetch the generated Azure SSH public key from vscode node
     echo "Fetching Azure SSH public key from vscode node..."
-    sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat ~/acme_corp/playbooks/cloud/azure/files/azure_demo_ssh_key.pub" > /tmp/azure_demo_ssh_key.pub 2>/dev/null
+    /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat ~/acme_corp/playbooks/cloud/azure/files/azure_demo_ssh_key.pub" > /tmp/azure_demo_ssh_key.pub 2>/dev/null
 
     if [ -f /tmp/azure_demo_ssh_key.pub ] && [ -s /tmp/azure_demo_ssh_key.pub ]; then
       echo "Azure SSH public key retrieved successfully"
