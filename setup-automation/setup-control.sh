@@ -44,18 +44,10 @@ AllowUnencrypted = true
 COCKPIT_EOF
 echo "Cockpit configuration created at /etc/cockpit/cockpit.conf"
 
-# Install Python 3.11 and sshpass
+# Install Python 3.11
 # Python 3.9 is not supported by some ansible collections
-# sshpass is needed to fetch cloud env variables from vscode node
-echo "Installing Python 3.11 and sshpass..."
-dnf install -y python3.11 python3.11-pip sshpass
-
-# Verify sshpass installation
-if command -v sshpass &> /dev/null; then
-    echo "sshpass installed successfully: $(which sshpass)"
-else
-    echo "WARNING: sshpass installation may have failed. Attempting to continue..."
-fi
+echo "Installing Python 3.11..."
+dnf install -y python3.11 python3.11-pip
 
 # Set Python 3.11 as the default python3 using alternatives
 echo "Setting Python 3.11 as default python3..."
@@ -68,8 +60,21 @@ python3 -V
 
 # Remove conflicting ansible-core RPM package (uses Python 3.9)
 # We use the pip-installed ansible-core with Python 3.11 instead
+# Note: This may also remove sshpass as a dependency, so we install it after
 echo "Removing RPM ansible-core package to avoid version conflicts..."
 dnf remove -y ansible-core || true
+
+# Install sshpass after removing ansible-core to ensure it's available
+# sshpass is needed to fetch cloud env variables from vscode node
+echo "Installing sshpass..."
+dnf install -y sshpass
+
+# Verify sshpass installation
+if command -v sshpass &> /dev/null; then
+    echo "sshpass installed successfully: $(which sshpass)"
+else
+    echo "WARNING: sshpass installation may have failed. Attempting to continue..."
+fi
 
 # Install ansible-core with Python 3.11 using pip
 # This ensures we use the latest ansible-core with Python 3.11 instead of the RPM version with Python 3.9
