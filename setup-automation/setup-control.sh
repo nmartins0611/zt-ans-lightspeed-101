@@ -96,9 +96,28 @@ ansible --version
 # RHDP sets cloud environment variables on vscode node, not control node
 echo "Fetching cloud environment variables from vscode node..."
 
-# Use sshpass to connect to vscode node and retrieve cloud environment variables
-# The vscode node setup creates /home/rhel/.cloud_env with the RHDP environment variables
-/usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat /home/rhel/.cloud_env" > /tmp/.cloud_env
+# Wait for vscode node setup to complete - retry up to 30 times (150 seconds)
+RETRY_COUNT=0
+MAX_RETRIES=30
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+  # Use sshpass to connect to vscode node and check if setup is complete
+  # The vscode node setup creates /home/rhel/.cloud_env and ~/acme_corp as final steps
+  if /usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "test -f /home/rhel/.cloud_env && test -d /home/rhel/acme_corp" 2>/dev/null; then
+    echo "Vscode node setup detected as complete"
+    break
+  fi
+
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+    echo "Waiting for vscode node setup to complete... (attempt $RETRY_COUNT/$MAX_RETRIES)"
+    sleep 5
+  else
+    echo "WARNING: Timed out waiting for vscode node setup. Proceeding anyway..."
+  fi
+done
+
+# Retrieve cloud environment variables from vscode node
+/usr/bin/sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat /home/rhel/.cloud_env" > /tmp/.cloud_env 2>/dev/null
 
 if [ -f /tmp/.cloud_env ]; then
   echo "Cloud environment variables retrieved from vscode node"
