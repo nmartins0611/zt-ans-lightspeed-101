@@ -109,10 +109,6 @@ if [ -f /tmp/.cloud_env ]; then
   echo "  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:0:10}..."
   echo "  AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:0:10}..."
 
-  # Wait for vscode node setup to complete
-  echo "Waiting 45 seconds for vscode node setup to complete..."
-  sleep 45
-
   # Run AWS/Azure resource preparation playbooks on vscode node where credentials are available
   echo "Setting up AWS resources on vscode node..."
   sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/aws/prepare_aws_environment.yml -m stdout"
