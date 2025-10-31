@@ -41,9 +41,101 @@ AllowUnencrypted = true
 COCKPIT_EOF
 echo "Cockpit configuration created at /etc/cockpit/cockpit.conf"
 
+# Install Python 3.11 and sshpass
+# Python 3.9 is not supported by some ansible collections
+# sshpass is needed to fetch cloud env variables from vscode node
+echo "Installing Python 3.11 and sshpass..."
+dnf install -y python3.11 python3.11-pip sshpass
+
+# Set Python 3.11 as the default python3 using alternatives
+echo "Setting Python 3.11 as default python3..."
+alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1
+alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 2
+alternatives --set python3 /usr/bin/python3.11
+
+echo "Python version updated:"
+python3 -V
+
+# Remove conflicting ansible-core RPM package (uses Python 3.9)
+# We use the pip-installed ansible-core with Python 3.11 instead
+echo "Removing RPM ansible-core package to avoid version conflicts..."
+dnf remove -y ansible-core || true
+
+# Install ansible-core with Python 3.11 using pip
+# This ensures we use the latest ansible-core with Python 3.11 instead of the RPM version with Python 3.9
+echo "Installing ansible-core with Python 3.11..."
+python3.11 -m pip install --upgrade pip
+python3.11 -m pip install ansible-core
+
+# Find where pip installed ansible-core binaries
+ANSIBLE_BIN_PATH=$(python3.11 -c "import site; print(site.USER_BASE + '/bin')")
+echo "Ansible binaries installed to: $ANSIBLE_BIN_PATH"
+
+# Ensure pip-installed ansible is in PATH
+export PATH="$ANSIBLE_BIN_PATH:/usr/local/bin:$PATH"
+
+echo "Ansible version:"
+ansible --version
+
+# Fetch cloud provider environment variables from vscode node
+# RHDP sets cloud environment variables on vscode node, not control node
+echo "Fetching cloud environment variables from vscode node..."
+
+# Use sshpass to connect to vscode node and retrieve cloud environment variables
+# The vscode node setup creates /home/rhel/.cloud_env with the RHDP environment variables
+sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat /home/rhel/.cloud_env" > /tmp/.cloud_env
+
+if [ -f /tmp/.cloud_env ]; then
+  echo "Cloud environment variables retrieved from vscode node"
+  # Move to system-wide profile.d location
+  mv /tmp/.cloud_env /etc/profile.d/cloud_env.sh
+  chmod 644 /etc/profile.d/cloud_env.sh
+
+  # Source the cloud environment variables for this session
+  source /etc/profile.d/cloud_env.sh
+
+  echo "Cloud environment variables loaded:"
+  echo "  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:0:10}..."
+  echo "  AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:0:10}..."
+
+  # Run AWS/Azure resource preparation playbooks on vscode node where credentials are available
+  echo "Setting up AWS resources on vscode node..."
+  sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/aws/prepare_aws_environment.yml -m stdout"
+
+  if [ $? -eq 0 ]; then
+    echo "AWS resources created successfully"
+  else
+    echo "WARNING: Failed to create AWS resources. EC2 provisioning job template may not work correctly."
+  fi
+
+  echo "Setting up Azure resources on vscode node..."
+  sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "source /home/rhel/.cloud_env && cd ~/acme_corp && ansible-navigator run playbooks/cloud/azure/prepare_azure_environment.yml -m stdout"
+
+  if [ $? -eq 0 ]; then
+    echo "Azure resources created successfully"
+
+    # Fetch the generated Azure SSH public key from vscode node
+    echo "Fetching Azure SSH public key from vscode node..."
+    sshpass -p 'ansible123!' ssh -o StrictHostKeyChecking=no rhel@vscode "cat ~/acme_corp/playbooks/cloud/azure/files/azure_demo_ssh_key.pub" > /tmp/azure_demo_ssh_key.pub 2>/dev/null
+
+    if [ -f /tmp/azure_demo_ssh_key.pub ] && [ -s /tmp/azure_demo_ssh_key.pub ]; then
+      echo "Azure SSH public key retrieved successfully"
+      # Export it as an environment variable for use in the playbook
+      export AZURE_SSH_PUB_KEY=$(cat /tmp/azure_demo_ssh_key.pub)
+      echo "  Key fingerprint: $(echo $AZURE_SSH_PUB_KEY | cut -d' ' -f2 | cut -c1-20)..."
+    else
+      echo "WARNING: Could not retrieve Azure SSH public key. Azure VM provisioning may fail."
+    fi
+  else
+    echo "WARNING: Failed to create Azure resources. Azure VM provisioning job template may not work correctly."
+  fi
+else
+  echo "WARNING: Could not retrieve cloud environment variables from vscode node. AWS/Azure credentials may not be available."
+fi
+
 # Create a playbook for the user to execute
 
-tee /tmp/setup.yml << EOF
+tee /tmp/setup.yml > /dev/null << EOF
 ### Automation Controller setup 
 ###
 ---
@@ -59,47 +151,25 @@ tee /tmp/setup.yml << EOF
     aws_default_region: "{{ lookup('env', 'AWS_DEFAULT_REGION') | default('AWS_DEFAULT_REGION_NOT_FOUND', true) }}"
     quay_username: "{{ lookup('env', 'QUAY_USERNAME') | default('QUAY_USERNAME_NOT_FOUND', true) }}"
     quay_password: "{{ lookup('env', 'QUAY_PASSWORD') | default('QUAY_PASSWORD_NOT_FOUND', true) }}"
-    azure_subscription: "{{ lookup('env', 'AZURE_SUBSCRIPTION') | default('AZURE_SUBSCRIPTION_NOT_FOUND', true) }}"
+    azure_subscription: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') | default('AZURE_SUBSCRIPTION_NOT_FOUND', true) }}"
     azure_tenant: "{{ lookup('env', 'AZURE_TENANT') | default('AZURE_TENANT_NOT_FOUND', true) }}"
     azure_client_id: "{{ lookup('env', 'AZURE_CLIENT_ID') | default('AZURE_CLIENT_ID_NOT_FOUND', true) }}"
-    azure_password: "{{ lookup('env', 'AZURE_PASSWORD') | default('AZURE_PASSWORD_NOT_FOUND', true) }}"
-    azure_resourcegroup: "{{ lookup('env', 'AZURE_RESOURCEGROUP') | default('AZURE_RESOURCEGROUP_NOT_FOUND', true) }}"
-
-  vars_files:
-    - track_vars.yml
-    - vault_track_vars.yml
-
-  vars:
-      controller_login: &controller_login
+    azure_password: "{{ lookup('env', 'AZURE_SECRET') | default('AZURE_SECRET_NOT_FOUND', true) }}"
+    azure_resourcegroup: "{{ lookup('env', 'AZURE_RESOURCE_GROUP') | default('AZURE_RESOURCEGROUP_NOT_FOUND', true) }}"
+    azure_ssh_pub_key: "{{ lookup('env', 'AZURE_SSH_PUB_KEY') | default('', true) }}"
+    controller_login: &controller_login
       controller_username: "{{ controller_username }}"
       controller_password: "{{ controller_password }}"
       controller_host: "{{ controller_hostname }}"
       validate_certs: "{{ controller_validate_certs }}"
 
+  vars_files:
+    - track_vars.yml
+
   tasks:
 
     # Initial controller setup - runs automatically (no tags) at startup
-    - name: Initial Controller Setup - Wait for controller availability
-      ansible.builtin.uri:
-        url: https://localhost/api/v2/ping/
-        method: GET
-        user: "{{ controller_username }}"
-        password: "{{ controller_password }}"
-        validate_certs: false
-      register: __controller_check
-      until:
-        - __controller_check.json is defined
-        - __controller_check.json.instances[0].capacity > 0
-        - __controller_check.json.instance_groups[0].capacity > 0
-      retries: 60
-      delay: 5
-
-    - name: Initial Controller Setup - Create Organization
-      ansible.controller.organization:
-        name: "{{ lab.organization }}"
-        state: present
-        <<: *controller_login
-
+    # Note: Using Default organization instead of creating custom one due to permissions
     - name: Initial Controller Setup - Create Execution Environment
       ansible.controller.execution_environment:
         name: "{{ lab.execution_environment.name }}"
@@ -151,9 +221,34 @@ tee /tmp/setup.yml << EOF
         variables:
           ansible_host: "control.lab"
           ansible_user: rhel
-          ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+          ansible_password: "ansible123!"
+          ansible_become_password: "ansible123!"
           ansible_python_interpreter: /usr/bin/python3
           ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
+    - name: Initial Controller Setup - Add devtools (vscode) host to inventory
+      ansible.controller.host:
+        name: "devtools"
+        inventory: "{{ lab.inventory.name }}"
+        state: present
+        <<: *controller_login
+        variables:
+          ansible_host: "vscode.lab"
+          ansible_user: rhel
+          ansible_password: "ansible123!"
+          ansible_become_password: "ansible123!"
+          ansible_python_interpreter: /usr/bin/python3
+          ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
+    - name: Initial Controller Setup - Create rhel group with hosts
+      ansible.controller.group:
+        name: "rhel"
+        inventory: "{{ lab.inventory.name }}"
+        state: present
+        <<: *controller_login
+        hosts:
+          - control
+          - devtools
 
     - name: Initial Controller Setup - Create SSH Machine Credential
       ansible.controller.credential:
@@ -209,6 +304,7 @@ tee /tmp/setup.yml << EOF
         playbook: "playbooks/infra/install_cockpit/demo_install_cockpit.yml"
         execution_environment: "{{ lab.execution_environment.name }}"
         inventory: "{{ lab.inventory.name }}"
+        limit: "control"
         credentials:
           - "{{ lab.credential.ssh.name }}"
         project: "{{ lab.project.name }}"
@@ -217,13 +313,14 @@ tee /tmp/setup.yml << EOF
     - name: Initial Controller Setup - Create Job Template - Deploy PostgreSQL and PGAdmin
       ansible.controller.job_template:
         name: "Deploy PostgreSQL and PG Admin"
-        description: "Deploy PostgreSQL database and PGAdmin"
+        description: "Deploy PostgreSQL database and PGAdmin on devtools node"
         organization: "{{ lab.organization }}"
         state: present
         job_type: run
         playbook: "playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml"
         execution_environment: "{{ lab.execution_environment.name }}"
         inventory: "{{ lab.inventory.name }}"
+        limit: "devtools"
         credentials:
           - "{{ lab.credential.ssh.name }}"
         project: "{{ lab.project.name }}"
@@ -260,10 +357,14 @@ tee /tmp/setup.yml << EOF
         credentials:
           - "{{ lab.credential.azure.name }}"
         project: "{{ lab.project.name }}"
+        extra_vars:
+          pub_key_data: "{{ azure_ssh_pub_key }}"
         <<: *controller_login
       when:
         - azure_subscription is defined
         - azure_subscription != 'AZURE_SUBSCRIPTION_NOT_FOUND'
+        - azure_ssh_pub_key is defined
+        - azure_ssh_pub_key | length > 0
 
   # Have to update objects with $_SANDBOX_ID in FQDN.
     - name: Setup initial environment
@@ -398,7 +499,7 @@ tee /tmp/setup.yml << EOF
         - solve-azure-playbooks
 
     - name: Update controller credentials - {{ content_list }}
-      awx.awx.credential:
+      ansible.controller.credential:
         name: "{{ item.name }}"
         description: "{{ item.description }}"
         organization: "{{ item.organization }}"
@@ -421,7 +522,7 @@ tee /tmp/setup.yml << EOF
         - setup-azure-credentials
 
     - name: Setup - create job templates - {{ content_list }}
-      awx.awx.job_template:
+      ansible.controller.job_template:
         name: "{{ item.name }}"
         state: "{{ item.state }}"
         become_enabled: "{{ item.become_enabled | default(omit)}}"
@@ -454,153 +555,9 @@ tee /tmp/setup.yml << EOF
         - setup-azure-jt
         - setup-playground-jt
 
-    - name: Setup AWS resources
-      delegate_to: localhost
-      tags:
-        - setup-aws-resources
-      block:
-        - name: Create keypair called lightspeed-keypair from instruqt_lab.pub key
-          amazon.aws.ec2_key:
-            name: lightspeed-keypair
-            key_material: "{{ lookup('ansible.builtin.file', '~/.ssh/instruqt_lab.pub') }}"
-            tags:
-              function: lightspeed-demo
-
-        - name: Create VPC named vpc-lightspeed
-          amazon.aws.ec2_vpc_net:
-            name: vpc-lightspeed
-            cidr_block: 10.0.0.0/16
-            tags:
-              Name: vpc-lightspeed
-              function: lightspeed-demo
-            state: present
-          register: ec2_vpc_net
-
-        - name: Create vpc_id var
-          ansible.builtin.set_fact:
-            vpc_id: "{{ ec2_vpc_net.vpc.id }}"
-
-        - name: Create security group named secgroup-lightspeed in vpc-lightspeed vpc
-          amazon.aws.ec2_security_group:
-            name: secgroup-lightspeed
-            description: SSH access
-            vpc_id: "{{ vpc_id }}"
-            state: present
-            rules:
-              - proto: tcp
-                ports:
-                  - 22
-                cidr_ip: 0.0.0.0/0
-                rule_desc: allow all on ssh port
-            tags:
-              function: lightspeed-demo
-          register: secgroup_lightspeed
-
-        - name: Create subnet with 10.0.1.0/24 cidr called subnet-lightspeed
-          amazon.aws.ec2_vpc_subnet:
-            vpc_id: "{{ vpc_id }}"
-            cidr: 10.0.1.0/24
-            az: us-east-1a
-            state: present
-            tags:
-              Name: subnet-lightspeed
-          register: subnet_lightspeed
-
-        - name: Create internet gateway
-          amazon.aws.ec2_vpc_igw:
-            vpc_id: "{{ vpc_id }}"
-            tags:
-              Name: gateway-lightspeed
-            state: present
-          register: igw
-
-        - name: Create public route table
-          amazon.aws.ec2_vpc_route_table:
-            vpc_id: "{{ vpc_id }}"
-            subnets:
-              - "{{ subnet_lightspeed.subnet.id }}"
-            routes:
-              - dest: 0.0.0.0/0
-                gateway_id: "{{ igw.gateway_id }}"
-
-    - name: Setup Azure resources
-      delegate_to: localhost
-      tags:
-        - setup-azure-resources
-      block:
-        - name: Create files folder
-          ansible.builtin.file:
-            path: "~{{ student_username }}/{{ gitea_repo_name }}/playbooks/cloud/azure/files"
-            state: directory
-            owner: "{{ student_username }}"
-            group: "{{ student_username }}"
-            mode: '0755'
-          delegate_to: controller.acme.example.com
-
-        - name: Copy Instruqt lab SSH keys
-          ansible.builtin.copy:
-            src: "~/.ssh/{{ item.name }}"
-            dest: "~{{ student_username }}/{{ gitea_repo_name }}/playbooks/cloud/azure/files/azure_demo_ssh_key{{ item.name | splitext | last }}"
-            owner: "{{ student_username }}"
-            group: "{{ student_username }}"
-            mode: "{{ item.mode }}"
-          delegate_to: controller.acme.example.com
-          loop:
-            - name: instruqt_lab
-              mode: '0600'
-            - name: instruqt_lab.pub
-              mode: '0644'
-
-        - name: Create resource group called rg-lightspeed
-          azure.azcollection.azure_rm_resourcegroup:
-            name: rg-lightspeed
-            location: eastus
-          register: rg
-
-        - name: Create virtual network called vnet-lightspeed
-          azure.azcollection.azure_rm_virtualnetwork:
-            resource_group: rg-lightspeed
-            name: vnet-lightspeed
-            address_prefixes: 10.0.0.0/16
-
-        - name: Add subnet called subnet-lightspeed
-          azure.azcollection.azure_rm_subnet:
-            resource_group: rg-lightspeed
-            name: subnet-lightspeed
-            address_prefix: 10.0.1.0/24
-            virtual_network: vnet-lightspeed
-
-        - name: Create public IP address called ip-lightspeed
-          azure.azcollection.azure_rm_publicipaddress:
-            resource_group: rg-lightspeed
-            allocation_method: Static
-            name: ip-lightspeed
-          register: ip_lightspeed
-
-        - name: Create azure_public_ip var
-          ansible.builtin.set_fact:
-            azure_public_ip: "{{ ip_lightspeed.state.ip_address }}"
-
-        - name: Create Network Security Group that allows SSH
-          azure.azcollection.azure_rm_securitygroup:
-            resource_group: rg-lightspeed
-            name: secgroup-lightspeed
-            rules:
-              - name: SSH
-                protocol: Tcp
-                destination_port_range: 22
-                access: Allow
-                priority: 1001
-                direction: Inbound
-
-        - name: Create virtual network interface
-          azure.azcollection.azure_rm_networkinterface:
-            resource_group: rg-lightspeed
-            name: nic-lightspeed
-            virtual_network: vnet-lightspeed
-            subnet: subnet-lightspeed
-            public_ip_name: ip-lightspeed
-            security_group: secgroup-lightspeed
+    # AWS and Azure resources are now created on vscode node via prepare_aws_environment.yml
+    # and prepare_azure_environment.yml playbooks (run via SSH earlier in this script)
+    # No need for these tasks blocks here anymore
 
     - name: Solve configure-tools VS Code settings
       ansible.builtin.copy:
@@ -642,7 +599,7 @@ tee /tmp/setup.yml << EOF
 
     - name: Solve run job templates
       delegate_to: localhost
-      awx.awx.job_launch:
+      ansible.controller.job_launch:
         name: "{{ item.name }}"
         wait: true
         <<: *controller_login
@@ -716,7 +673,6 @@ tee /tmp/setup.yml << EOF
 
   vars_files:
     - track_vars.yml
-    - vault_track_vars.yml
 
   tasks:
     - name: Create pgadmin container
@@ -798,7 +754,7 @@ tee /tmp/setup.yml << EOF
             success_msg: "Postgresql service running."
 EOF
 
-tee /tmp/track_vars.yml << EOF
+tee /tmp/track_vars.yml > /dev/null << EOF
 
 ---
 # config vars
@@ -840,7 +796,7 @@ lab:
       name: ACME Corp AWS credential
     azure:
       name: ACME Corp Azure credential
-  organization: ACME Corp
+  organization: Default
   project:
     name: ACME Corp Repo
     repo: "{{ gitea_app_url }}/{{ student_username }}/acme_corp.git"
@@ -859,7 +815,7 @@ lab:
     image: quay.io/acme_corp/lightspeed-101_ee
 # Gitea vars
 gitea_http_port: 3000
-gitea_protocol: https
+gitea_protocol: http
 gitea_hostname: gitea
 gitea_app_url: "{{ gitea_protocol }}://{{ gitea_hostname }}:{{ gitea_http_port }}"
 gitea_repo_name: acme_corp
@@ -1235,9 +1191,30 @@ export ANSIBLE_INVENTORY_UNPARSED_WARNING=False
 
 # Run the controller setup playbook to configure initial setup
 # Skip tagged tasks - only run the untagged initial setup tasks
+# Use the certified collections bundled with AAP instead of galaxy collections
 echo "Running controller initial setup..."
 cd /tmp
-ansible-playbook setup.yml --skip-tags setup-env,setup-workflow-playbooks,solve-workflow-playbooks,solve-database-playbooks,solve-monitoring-playbooks,solve-aws-playbooks,solve-azure-playbooks,setup-playground-playbooks,setup-playground-credentials,setup-aws-credentials,setup-azure-credentials,setup-monitoring-jt,setup-database-jt,setup-workflow-jt,setup-aws-jt,setup-azure-jt,setup-playground-jt,setup-aws-resources,setup-azure-resources,solve-configure-tools,check-configure-tools,solve-database-jt,solve-monitoring-jt,solve-aws-jt,solve-azure-jt,check-aws-instance,cleanup-aws-instance,check-azure-vm,cleanup-azure-vm,setup-database-container,check-database-app,check-monitoring-cockpit,check-database-postgresql -e ansible_python_interpreter=/usr/bin/python3 2>&1 | tee /tmp/controller_setup.log
+
+# Find where pip installed ansible-core binaries
+ANSIBLE_BIN_PATH=$(python3.11 -c "import site; print(site.USER_BASE + '/bin')")
+
+# Ensure pip-installed ansible binaries are in PATH
+export PATH="$ANSIBLE_BIN_PATH:/usr/local/bin:$PATH"
+hash -r
+
+echo "Using ansible from: $ANSIBLE_BIN_PATH"
+ansible --version
+
+# Set collections path to use AAP bundled collections if available, fallback to system collections
+if [ -d "/tmp/ansible-automation-platform-containerized-setup-bundle-2.5-9-x86_64/collections/" ]; then
+  export ANSIBLE_COLLECTIONS_PATH="/tmp/ansible-automation-platform-containerized-setup-bundle-2.5-9-x86_64/collections/:/root/.ansible/collections/ansible_collections/"
+  echo "Using AAP bundled collections"
+else
+  export ANSIBLE_COLLECTIONS_PATH="/usr/share/ansible/collections:/root/.ansible/collections/ansible_collections/"
+  echo "Using system collections"
+fi
+
+ansible-playbook setup.yml -e ansible_python_interpreter=/usr/bin/python3 --skip-tags setup-env,solve-monitoring-playbooks,solve-database-playbooks,solve-aws-playbooks,solve-azure-playbooks,solve-workflow-playbooks,setup-workflow-playbooks,solve-configure-tools,check-configure-tools,solve-database-jt,solve-monitoring-jt,solve-aws-jt,solve-azure-jt,check-aws-instance,cleanup-aws-instance,check-azure-vm,cleanup-azure-vm,setup-database-container,check-database-app,check-monitoring-cockpit,check-database-postgresql,setup-playground-playbooks,setup-playground-credentials,setup-playground-jt,setup-monitoring-jt,setup-database-jt,setup-aws-jt,setup-azure-jt 2>&1 | tee /tmp/controller_setup.log
 
 if [ $? -eq 0 ]; then
   echo "Controller setup completed successfully!"

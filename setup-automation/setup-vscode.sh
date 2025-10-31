@@ -268,6 +268,9 @@ if ! grep -q ".cloud_env" /home/rhel/.bashrc; then
     echo "[ -f ~/.cloud_env ] && source ~/.cloud_env" | sudo -u rhel tee -a /home/rhel/.bashrc > /dev/null
 fi
 
+# Note: Cloud environment variables are fetched by setup-control.sh via reverse SSH
+# No need to push them here - control node will pull them when needed
+
 echo "Dev machine setup complete!"
 echo "Repository cloned to: /home/rhel/${REPO_NAME}"
 echo "Execution environment ready: ${EE_IMAGE}"
