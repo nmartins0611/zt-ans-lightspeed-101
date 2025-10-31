@@ -604,7 +604,7 @@ tee /tmp/setup.yml > /dev/null << EOF
         wait: true
         <<: *controller_login
       loop: "{{ controller_templates[content_list] }}"
-      when: 
+      when:
         - controller_templates[content_list] is defined
       tags:
         - solve-database-jt
@@ -612,146 +612,6 @@ tee /tmp/setup.yml > /dev/null << EOF
         - solve-aws-jt
         - solve-azure-jt
 
-    - name: Check EC2 instance is provisioned and running
-      delegate_to: localhost
-      tags:
-        - check-aws-instance
-      block:
-        - name: Gather EC2 instance info
-          amazon.aws.ec2_instance_info:
-            filters:
-              "tag:Name": "instance-lightspeed-01"
-              "tag:function": "demo-lightspeed"
-              instance-state-name: ["running"]
-          register: ec2_node_info
-
-        - name: Assert that EC2 instance is provisioned and running
-          ansible.builtin.assert:
-            that:
-              - ec2_node_info["instances"] | length > 0
-            fail_msg: The EC2 instance is not provisioned and running.
-            success_msg: The EC2 instance is provisioned and running.
-
-    - name: Cleanup AWS instance
-      delegate_to: localhost
-      amazon.aws.ec2_instance:
-        state: terminated
-        filters:
-          "tag:Name": "instance-lightspeed-01"
-          "tag:function": "demo-lightspeed"
-        wait: false
-      tags:
-        - cleanup-aws-instance
-
-    - name: Check Azure VM is provisioned and running
-      delegate_to: localhost
-      azure_rm_virtualmachine_info:
-        resource_group: rg-lightspeed
-        name: vm-lightspeed
-      register: __azure_vm_info
-      tags:
-        - check-azure-vm
-
-    - name: Remove Azure VM instance
-      delegate_to: localhost
-      azure.azcollection.azure_rm_virtualmachine:
-        state: absent
-        name: vm-lightspeed
-        resource_group: rg-lightspeed
-      tags:
-        - cleanup-azure-vm
-
-  
-
-- name: Setup, check, and solve on nodes
-  hosts: nodes
-  gather_facts: false
-  become: true
-
-  vars:
-    track_slug: lightspeed-101
-
-  vars_files:
-    - track_vars.yml
-
-  tasks:
-    - name: Create pgadmin container
-      tags:
-        - setup-database-container
-      block:
-        - name: Get host ansible_facts
-          ansible.builtin.setup:
-
-        - name: Run podman container using pgadmin_container var
-          containers.podman.podman_container:
-            name: "{{ pgadmin_container.name }}"
-            image: "{{ pgadmin_container.image }}"
-            state: stopped
-            ports: "{{ pgadmin_container.ports }}"
-            generate_systemd: "{{ pgadmin_container.generate_systemd }}"
-            env: "{{ pgadmin_container.env }}"
-            network: "{{ pgadmin_container.network }}"
-
-        - name: Manage container service - {{ pgadmin_service_name }}
-          ansible.builtin.systemd:
-            name: "{{ pgadmin_service_name }}"
-            state: "{{ container_service | default('stopped') }}"
-            enabled: true
-            daemon_reload: true
-
-    - name: Check database - PGAdmin is running
-      tags:
-        - check-database-app
-      block:
-        - name: Get container info - "{{ pgadmin_container.name }}"
-          containers.podman.podman_container_info:
-            name:
-              - "{{ pgadmin_container.name }}"
-          register: __app_container_info
-
-        - name: Check database - assert container is running
-          ansible.builtin.assert:
-            that: 
-              - '"Error: inspecting object: no such container" not in __app_container_info.stderr'
-              - __app_container_info.containers[0]["State"]["Running"]
-            fail_msg: "Error inspecting container - {{ pgadmin_container.name }}."
-            success_msg: "Successfully inspected container - {{ pgadmin_container.name }}."
-
-    - name: Check monitoring - Cockpit is running
-      tags:
-        - check-monitoring-cockpit
-      block:
-        - name: Check and Solve monitoring - Cockpit app is running
-          ansible.builtin.systemd:
-            name: cockpit.socket
-            state: started
-          check_mode: "{{ check_mode | default(true) }}"
-          register: __cockpit_service
-
-        - name: Check monitoring - assert cockpit is running
-          ansible.builtin.assert:
-            that: 
-              - __cockpit_service["status"]["ActiveState"] == "active"
-            fail_msg: "Cockpit service stopped."
-            success_msg: "Cockpit service running."
-
-    - name: Check database - Postgresql is running
-      tags:
-        - check-database-postgresql
-      block:
-        - name: Check and Solve keywords - Monitor app is running
-          ansible.builtin.systemd:
-            name: postgresql
-            state: started
-          check_mode: "{{ check_mode | default(true) }}"
-          register: __postgresql_service
-
-        - name: Check database - assert postgresql is running
-          ansible.builtin.assert:
-            that: 
-              - __postgresql_service["status"]["ActiveState"] == "active"
-            fail_msg: "Postgresql service stopped."
-            success_msg: "Postgresql service running."
 EOF
 
 tee /tmp/track_vars.yml > /dev/null << EOF
@@ -1214,7 +1074,7 @@ else
   echo "Using system collections"
 fi
 
-ansible-playbook setup.yml -e ansible_python_interpreter=/usr/bin/python3 --skip-tags setup-env,solve-monitoring-playbooks,solve-database-playbooks,solve-aws-playbooks,solve-azure-playbooks,solve-workflow-playbooks,setup-workflow-playbooks,solve-configure-tools,check-configure-tools,solve-database-jt,solve-monitoring-jt,solve-aws-jt,solve-azure-jt,check-aws-instance,cleanup-aws-instance,check-azure-vm,cleanup-azure-vm,setup-database-container,check-database-app,check-monitoring-cockpit,check-database-postgresql,setup-playground-playbooks,setup-playground-credentials,setup-playground-jt,setup-monitoring-jt,setup-database-jt,setup-aws-jt,setup-azure-jt 2>&1 | tee /tmp/controller_setup.log
+ansible-playbook setup.yml -e ansible_python_interpreter=/usr/bin/python3 --skip-tags setup-env,solve-monitoring-playbooks,solve-database-playbooks,solve-aws-playbooks,solve-azure-playbooks,solve-workflow-playbooks,setup-workflow-playbooks,solve-configure-tools,check-configure-tools,solve-database-jt,solve-monitoring-jt,solve-aws-jt,solve-azure-jt,setup-playground-playbooks,setup-playground-credentials,setup-playground-jt,setup-monitoring-jt,setup-database-jt,setup-aws-jt,setup-azure-jt 2>&1 | tee /tmp/controller_setup.log
 
 if [ $? -eq 0 ]; then
   echo "Controller setup completed successfully!"
