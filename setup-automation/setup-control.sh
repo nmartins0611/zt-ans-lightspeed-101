@@ -77,7 +77,194 @@ tee /tmp/setup.yml << EOF
       validate_certs: "{{ controller_validate_certs }}"
 
   tasks:
- 
+
+    # Initial controller setup - runs automatically (no tags) at startup
+    - name: Initial Controller Setup - Wait for controller availability
+      ansible.builtin.uri:
+        url: https://localhost/api/v2/ping/
+        method: GET
+        user: "{{ controller_username }}"
+        password: "{{ controller_password }}"
+        validate_certs: false
+      register: __controller_check
+      until:
+        - __controller_check.json is defined
+        - __controller_check.json.instances[0].capacity > 0
+        - __controller_check.json.instance_groups[0].capacity > 0
+      retries: 60
+      delay: 5
+
+    - name: Initial Controller Setup - Create Organization
+      ansible.controller.organization:
+        name: "{{ lab.organization }}"
+        state: present
+        <<: *controller_login
+
+    - name: Initial Controller Setup - Create Execution Environment
+      ansible.controller.execution_environment:
+        name: "{{ lab.execution_environment.name }}"
+        image: "{{ lab.execution_environment.image }}"
+        pull: missing
+        <<: *controller_login
+
+    - name: Initial Controller Setup - Create Project from Gitea
+      ansible.controller.project:
+        name: "{{ lab.project.name }}"
+        description: "ACME Corp playbooks from Gitea"
+        organization: "{{ lab.organization }}"
+        state: present
+        scm_type: git
+        scm_url: "{{ lab.project.repo }}"
+        scm_branch: "{{ lab.project.branch }}"
+        scm_update_on_launch: true
+        scm_update_cache_timeout: 0
+        default_environment: "{{ lab.execution_environment.name }}"
+        <<: *controller_login
+      register: __project_created
+      retries: 5
+      delay: 2
+      until: __project_created is not failed
+
+    - name: Initial Controller Setup - Update Project (sync)
+      ansible.controller.project_update:
+        name: "{{ lab.project.name }}"
+        <<: *controller_login
+      register: __project_update
+      retries: 5
+      delay: 2
+      until: __project_update is not failed
+
+    - name: Initial Controller Setup - Create Inventory
+      ansible.controller.inventory:
+        name: "{{ lab.inventory.name }}"
+        description: "{{ lab.inventory.description }}"
+        organization: "{{ lab.organization }}"
+        state: present
+        <<: *controller_login
+
+    - name: Initial Controller Setup - Add control host to inventory
+      ansible.controller.host:
+        name: "control"
+        inventory: "{{ lab.inventory.name }}"
+        state: present
+        <<: *controller_login
+        variables:
+          ansible_host: "control.lab"
+          ansible_user: rhel
+          ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+          ansible_python_interpreter: /usr/bin/python3
+          ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
+    - name: Initial Controller Setup - Create SSH Machine Credential
+      ansible.controller.credential:
+        name: "{{ lab.credential.ssh.name }}"
+        description: "SSH credential for ACME Corp machines"
+        organization: "{{ lab.organization }}"
+        credential_type: Machine
+        state: present
+        <<: *controller_login
+        inputs:
+          username: rhel
+          ssh_key_data: "{{ lookup('file', '/home/rhel/.ssh/id_rsa') }}"
+
+    - name: Initial Controller Setup - Create AWS Credential
+      ansible.controller.credential:
+        name: "{{ lab.credential.aws.name }}"
+        description: "AWS credential for cloud provisioning"
+        organization: "{{ lab.organization }}"
+        credential_type: Amazon Web Services
+        state: present
+        <<: *controller_login
+        inputs:
+          username: "{{ aws_access_key }}"
+          password: "{{ aws_secret_key }}"
+      when:
+        - aws_access_key is defined
+        - aws_access_key != 'AWS_ACCESS_KEY_ID_NOT_FOUND'
+
+    - name: Initial Controller Setup - Create Azure Credential
+      ansible.controller.credential:
+        name: "{{ lab.credential.azure.name }}"
+        description: "Azure credential for cloud provisioning"
+        organization: "{{ lab.organization }}"
+        credential_type: Microsoft Azure Resource Manager
+        state: present
+        <<: *controller_login
+        inputs:
+          client: "{{ azure_client_id }}"
+          secret: "{{ azure_password }}"
+          subscription: "{{ azure_subscription }}"
+          tenant: "{{ azure_tenant }}"
+      when:
+        - azure_subscription is defined
+        - azure_subscription != 'AZURE_SUBSCRIPTION_NOT_FOUND'
+
+    - name: Initial Controller Setup - Create Job Template - Deploy Monitoring
+      ansible.controller.job_template:
+        name: "Deploy monitoring"
+        description: "Deploy Cockpit monitoring on control node"
+        organization: "{{ lab.organization }}"
+        state: present
+        job_type: run
+        playbook: "playbooks/infra/install_cockpit/demo_install_cockpit.yml"
+        execution_environment: "{{ lab.execution_environment.name }}"
+        inventory: "{{ lab.inventory.name }}"
+        credentials:
+          - "{{ lab.credential.ssh.name }}"
+        project: "{{ lab.project.name }}"
+        <<: *controller_login
+
+    - name: Initial Controller Setup - Create Job Template - Deploy PostgreSQL and PGAdmin
+      ansible.controller.job_template:
+        name: "Deploy PostgreSQL and PG Admin"
+        description: "Deploy PostgreSQL database and PGAdmin"
+        organization: "{{ lab.organization }}"
+        state: present
+        job_type: run
+        playbook: "playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml"
+        execution_environment: "{{ lab.execution_environment.name }}"
+        inventory: "{{ lab.inventory.name }}"
+        credentials:
+          - "{{ lab.credential.ssh.name }}"
+        project: "{{ lab.project.name }}"
+        <<: *controller_login
+
+    - name: Initial Controller Setup - Create Job Template - Provision EC2 Instance
+      ansible.controller.job_template:
+        name: "Provision EC2 instance"
+        description: "Provision EC2 instance on AWS"
+        organization: "{{ lab.organization }}"
+        state: present
+        job_type: run
+        playbook: "playbooks/cloud/aws/demo_provision_ec2_instance.yml"
+        execution_environment: "{{ lab.execution_environment.name }}"
+        inventory: "{{ lab.inventory.name }}"
+        credentials:
+          - "{{ lab.credential.aws.name }}"
+        project: "{{ lab.project.name }}"
+        <<: *controller_login
+      when:
+        - aws_access_key is defined
+        - aws_access_key != 'AWS_ACCESS_KEY_ID_NOT_FOUND'
+
+    - name: Initial Controller Setup - Create Job Template - Provision Azure VM
+      ansible.controller.job_template:
+        name: "Provision Azure VM"
+        description: "Provision VM on Azure"
+        organization: "{{ lab.organization }}"
+        state: present
+        job_type: run
+        playbook: "playbooks/cloud/azure/demo_provision_azure_vm.yml"
+        execution_environment: "{{ lab.execution_environment.name }}"
+        inventory: "{{ lab.inventory.name }}"
+        credentials:
+          - "{{ lab.credential.azure.name }}"
+        project: "{{ lab.project.name }}"
+        <<: *controller_login
+      when:
+        - azure_subscription is defined
+        - azure_subscription != 'AZURE_SUBSCRIPTION_NOT_FOUND'
+
   # Have to update objects with $_SANDBOX_ID in FQDN.
     - name: Setup initial environment
       tags:
@@ -631,8 +818,8 @@ track_slug: lightspeed-101
 
 controller_username: "admin"
 controller_password: "ansible123!"
-controller_host: " http://localhost "
-validate_certs: "false
+controller_hostname: "https://localhost"
+controller_validate_certs: false
 student_username: "student"
 student_password: "learn_ansible"
 
@@ -1046,6 +1233,15 @@ EOF
 export ANSIBLE_LOCALHOST_WARNING=False
 export ANSIBLE_INVENTORY_UNPARSED_WARNING=False
 
-##
-##ANSIBLE_COLLECTIONS_PATH=/tmp/ansible-automation-platform-containerized-setup-bundle-2.5-9-x86_64/collections/:/root/.ansible/collections/ansible_collections/ ansible-playbook -i /tmp/inventory /tmp/setup.yml
+# Run the controller setup playbook to configure initial setup
+# Skip tagged tasks - only run the untagged initial setup tasks
+echo "Running controller initial setup..."
+cd /tmp
+ansible-playbook setup.yml --skip-tags setup-env,setup-workflow-playbooks,solve-workflow-playbooks,solve-database-playbooks,solve-monitoring-playbooks,solve-aws-playbooks,solve-azure-playbooks,setup-playground-playbooks,setup-playground-credentials,setup-aws-credentials,setup-azure-credentials,setup-monitoring-jt,setup-database-jt,setup-workflow-jt,setup-aws-jt,setup-azure-jt,setup-playground-jt,setup-aws-resources,setup-azure-resources,solve-configure-tools,check-configure-tools,solve-database-jt,solve-monitoring-jt,solve-aws-jt,solve-azure-jt,check-aws-instance,cleanup-aws-instance,check-azure-vm,cleanup-azure-vm,setup-database-container,check-database-app,check-monitoring-cockpit,check-database-postgresql -e ansible_python_interpreter=/usr/bin/python3 2>&1 | tee /tmp/controller_setup.log
 
+if [ $? -eq 0 ]; then
+  echo "Controller setup completed successfully!"
+else
+  echo "Controller setup failed - check /tmp/controller_setup.log for details"
+  exit 1
+fi
