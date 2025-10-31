@@ -44,13 +44,19 @@ echo "Cockpit configuration created at /etc/cockpit/cockpit.conf"
 # Install Python 3.11 and sshpass
 # Python 3.9 is not supported by some ansible collections
 # sshpass is needed to fetch cloud env variables from vscode node
-echo "Installing Python 3.11 and sshpass..."
-dnf install -y python3.11 python3.11-pip sshpass
+echo "Installing Python 3.11..."
+dnf install -y python3.11 python3.11-pip
+
+echo "Enabling EPEL repository for sshpass..."
+dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm || true
+
+echo "Installing sshpass..."
+dnf install -y sshpass
 
 # Verify sshpass installation
 if ! command -v sshpass &> /dev/null; then
     echo "ERROR: sshpass installation failed. Retrying..."
-    dnf install -y sshpass
+    dnf install -y --enablerepo=epel sshpass
     if ! command -v sshpass &> /dev/null; then
         echo "CRITICAL: sshpass could not be installed. Cloud resource setup will fail."
     fi
