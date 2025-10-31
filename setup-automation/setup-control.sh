@@ -47,6 +47,17 @@ echo "Cockpit configuration created at /etc/cockpit/cockpit.conf"
 echo "Installing Python 3.11 and sshpass..."
 dnf install -y python3.11 python3.11-pip sshpass
 
+# Verify sshpass installation
+if ! command -v sshpass &> /dev/null; then
+    echo "ERROR: sshpass installation failed. Retrying..."
+    dnf install -y sshpass
+    if ! command -v sshpass &> /dev/null; then
+        echo "CRITICAL: sshpass could not be installed. Cloud resource setup will fail."
+    fi
+else
+    echo "sshpass installed successfully: $(which sshpass)"
+fi
+
 # Set Python 3.11 as the default python3 using alternatives
 echo "Setting Python 3.11 as default python3..."
 alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1
