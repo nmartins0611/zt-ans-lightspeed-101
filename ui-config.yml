@@ -29,7 +29,7 @@ tabs:
   - name: gitea
     url: https://gitea-${guid}.${domain}/
   - name: VS Code
-    url: https://vscode-${guid}.${domain}
+    url: https://vscode-${guid}.${domain}/?folder=/home/rhel/acme_corp
     external: true
   - name: Cockpit
     url: https://cockpit-${guid}.${domain}/
