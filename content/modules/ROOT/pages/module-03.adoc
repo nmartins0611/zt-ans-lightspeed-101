@@ -44,27 +44,10 @@ Your goal is to use Ansible Lightspeed to generate a playbook that automates the
 
 The examples used in this lab are available in the link:https://github.com/ansible/ansible-lightspeed-demos[Ansible Lightspeed Demo repository].
 
-[IMPORTANT]
+[NOTE]
 ====
-The login credentials for all services in this lab are:
-
-* **Username:** `student`
-* **Password:** `learn_ansible`
+**Need Help?** If you encounter difficulties or want to verify your work, you can reference the solution playbook at `playbooks/infra/install_pgsql_and_pgadmin/solution_install_pgsql_pgadmin.yml` in the repository.
 ====
-
-=== Copy and Paste Instructions for the RHEL Workstation
-
-The lab uses a VNC browser instance to access the RHEL workstation. Some browsers, like Firefox and Safari, do not support direct copy and paste. The **Chrome** browser is recommended.
-
-If you are not using Chrome, you can use the **VNC Clipboard utility** to copy and paste between your local machine and the lab instance.
-
-.   **Open the VNC Clipboard utility** on the `RHEL` tab by pressing:
-    * `CTRL`+`ALT`+`SHIFT` on Windows or Linux.
-    * `CTRL`+`OPTION`+`SHIFT` on Mac.
-.   **Use the clipboard text area** as an interface between your local and remote clipboards.
-+
-image:../assets/vnc_sidebar_clipboard.png[VNC sidebar clipboard utility, opts="border"]
-.   **Close the utility** by pressing the same key combination again.
 
 ---
 
@@ -74,9 +57,7 @@ You will now edit a pre-created playbook file and use natural language prompts t
 
 .   **Open the playbook file in VS Code.**
 +
-    In the `RHEL` tab, open Visual Studio Code. In the VS Code sidebar, **open** the `demo_install_pgsql_pgadmin.yml` file.
-+
-image::../assets/lightspeed-pgsql-demo_install_pgsql_pgadmin.png[Opening the demo playbook file, opts="border"]
+    In the **VS Code** tab, navigate to the file explorer and **open** `playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml`.
 
 .   **Generate the PostgreSQL installation task.**
 +
@@ -146,26 +127,18 @@ You can now choose to run the completed playbook using either the automation con
 .   **Commit and push the playbook.**
 +
     In VS Code, **click** the **Source Control** icon. **Click** the **+** icon next to the playbook name to stage the changes, enter a commit message (e.g., `Install PostgreSQL`), and **click** the **Commit** button. Finally, **click** **Sync Changes** to push the playbook to the repository.
-+
-image::../assets/lightspeed-pgsql-source3.png[Committing changes in VS Code, opts="border"]
 
 .   **Run the Job Template.**
 +
-    Go to the **Controller** tab. Navigate to **Templates** and **click** the launch icon (🚀) next to the **Deploy PostgreSQL and PG Admin** Job Template.
-+
-image:../assets/lightspeed-pgsql-controller-template-run.png[Launching the job template, opts="border"]
+    Go to the **Ansible Automation Platform** tab. Log in with credentials `admin` / `ansible123!` if prompted. Navigate to **Resources** → **Templates** and **click** the launch icon (🚀) next to the **Deploy PostgreSQL and PG Admin** Job Template.
 +
     Wait for the job to complete successfully.
-+
-image:../assets/lightspeed-pgsql-controller-template-job.png[Successful job completion, opts="border"]
 
 === Option 2: Using ansible-navigator
 
 .   **Open a terminal in VS Code.**
 +
-    Click **Terminal** → **New Terminal**.
-+
-image:../assets/vscode_open_terminal.png[Opening a new terminal, opts="border"]
+    In the **VS Code** tab, click **Terminal** → **New Terminal**.
 
 .   **Navigate to the correct folder.**
 +
@@ -181,25 +154,15 @@ cd playbooks/infra/install_pgsql_and_pgadmin
 ansible-navigator run demo_install_pgsql_pgadmin.yml
 ----
 +
-image::../assets/pgsql_navigator_run.png[Successful run in ansible-navigator, opts="border"]
-+
-Press the `ESC` key to return to the prompt.
+Press the `ESC` key to return to the prompt after the playbook completes.
 
 == Task 4: Verify the PGAdmin Installation
 
 Finally, verify that the PGAdmin web interface is accessible.
 
 .   **Open the PGAdmin tab** at the top of the lab window.
-+
-[NOTE]
-====
-If necessary, click the refresh button on the `PGAdmin` tab to reload the page.
-image:../assets/instruqt_refresh_window.png[Instruqt refresh button, opts="border"]
-====
 
-.   If the playbook completed successfully, you should see the PGAdmin login interface.
-+
-image:../assets/lightspeed-pgsql-pgadmin-check.png[PGAdmin login screen, opts="border"]
+.   **Verify PGAdmin is accessible.** If the playbook completed successfully, you should see the PGAdmin login interface.
 
 ---
 
@@ -207,42 +170,17 @@ image:../assets/lightspeed-pgsql-pgadmin-check.png[PGAdmin login screen, opts="b
 
 Congratulations! You've successfully created an Ansible Playbook using Ansible Lightspeed to deploy PostgreSQL and PGAdmin!
 
-=== Need Help?
-
-* **Solution Videos:** One or more solution videos are available below.
-* **How to Skip:** Click the `Skip` button at the bottom right to move to the next challenge.
-
-.Solution Videos
-[%collapsible]
+[NOTE]
 ====
-.Generating the Playbook
-video::../assets/lightspeed_install_pgsql_pgadmin.gif[youtube]
-
-.Commit and Push to Repository
-video::../assets/postgresql-solution-commit3.gif[youtube]
-
-.Run in Automation Controller
-video::../assets/postgresql-solution-controller.gif[youtube]
-
-.Run using ansible-navigator
-video::../assets/postgresql-solution-navigator.gif[youtube]
-
-.Verify PGAdmin is working
-video::../assets/postgresql-solution-pgadmin-verify.gif[youtube]
+**Solution Playbook Available:** If you encountered issues or want to compare your work, you can review the complete solution at `playbooks/infra/install_pgsql_and_pgadmin/solution_install_pgsql_pgadmin.yml` in the repository.
 ====
+
+=== Additional Resources
+
+* link:https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed[More information] on Red Hat Ansible Lightspeed with IBM watsonx Code Assistant
+* link:https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant[Ansible Lightspeed Documentation]
+* link:https://www.youtube.com/ansibleautomation[Red Hat Ansible Automation Platform YouTube channel]
 
 === Feedback
 
 Please provide your feedback or report bugs using the **Ansible Lightspeed Feedback** section located in the VS Code Ansible Extension sidebar.
-image:../assets/extension_feedback.png[Ansible extension feedback section, opts="border"]
-
-=== Additional Resources
-
-* link:https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed[More information] on Red Hat Ansible Lightspeed with IBM watsonx Code Assistant.
-* link:https://www.redhat.com/en/engage/redhat-ansible-automation-202108061218[Self-paced exercises]
-* link:http://red.ht/try_ansible[Trial subscription]
-* link:https://www.youtube.com/ansibleautomation[Red Hat Ansible Automation Platform YouTube channel]
-
-=== Troubleshooting
-
-If you have encountered an issue, please link:https://github.com/ansible/instruqt/issues/new?labels=lightspeed-101&title=New+Intro+to+Lightspeed+issue:+monitoring&assignees=craig-br[open an issue on GitHub].
