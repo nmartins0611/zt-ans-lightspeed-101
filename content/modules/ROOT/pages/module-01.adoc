@@ -39,9 +39,11 @@ The examples used in this lab are available in the link:https://github.com/ansib
 Your lab environment provides access to multiple services via the tabs at the top:
 
 * **VS Code** - Visual Studio Code development environment with Ansible extension pre-installed
-* **Controller** - Ansible Automation Platform controller for running automation jobs
-* **Monitoring** - Cockpit web console for system monitoring (after setup in Module 2)
+* **Ansible Automation Platform** - Automation controller for running automation jobs
+* **Cockpit** - Cockpit web console for system monitoring (after setup in Module 2)
 * **PGAdmin** - PostgreSQL administration interface (after setup in Module 3)
+* **AWS/Azure** - Cloud account credentials for AWS and Azure resources (used in later challenges)
+* **gitea** - Internal Git repository hosting the lab playbooks
 
 [IMPORTANT]
 ====
