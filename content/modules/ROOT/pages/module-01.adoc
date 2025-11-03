@@ -11,166 +11,200 @@ _A guide to enabling and activating Ansible Lightspeed within the Ansible Visual
 
 == Introduction and Lab Setup
 
-In this lab, you will configure Ansible Lightspeed in Visual Studio Code. This lab uses a built-in licensed user seat to access the Ansible Lightspeed service.
+[IMPORTANT]
+====
+**Important Note About This Lab**
+
+IBM watsonx Code Assistant models are continuously updated and improved. As a result, some specific task generation challenges in this lab may not work exactly as described due to model updates. This is expected behavior.
+
+**The primary goal of this lab is to help you understand the key features of Ansible Lightspeed, including:**
+
+* **Playbook Generation** - Generating entire playbooks from natural language prompts
+* **Task Generation** - Generating individual tasks or multiple tasks at once
+* **Training Matches** - Understanding the transparency of AI suggestions
+* **Best Practices** - Learning how Lightspeed incorporates Ansible best practices
+
+**If a specific prompt doesn't generate suggestions as expected:**
+
+* Try **playbook generation** instead of task generation (delete the play structure and generate the entire playbook from a prompt)
+* Experiment with different prompt variations to see what gives you the best suggestions
+* Simplify complex multi-task prompts into separate single-task prompts
+* The learning objectives remain the same: understanding how to work with AI-assisted Ansible development
+====
+
+In this lab, you will configure Ansible Lightspeed in Visual Studio Code. You will sign up for the Ansible Lightspeed trial service using your own Red Hat account.
 
 The examples used in this lab are available in the link:https://github.com/ansible/ansible-lightspeed-demos[Ansible Lightspeed Demo repository].
 
-Your lab environment has three tabs at the top: `RHEL`, `RHEL-New Tab`, and `Controller`.
+Your lab environment provides access to multiple services via the tabs at the top:
 
-* The **RHEL** tab provides remote desktop access to a Red Hat Enterprise Linux workstation with Visual Studio Code pre-installed.
-* The **Controller** tab connects you to the link:https://www.ansible.com/products/controller[automation controller], which you will use in later challenges.
+* **VS Code** - Visual Studio Code development environment with Ansible extension pre-installed
+* **Controller** - Ansible Automation Platform controller for running automation jobs
+* **Monitoring** - Cockpit web console for system monitoring (after setup in Module 2)
+* **PGAdmin** - PostgreSQL administration interface (after setup in Module 3)
 
-image::../assets/RHEL9_desktop.png[RHEL 9 Desktop Environment, opts="border"]
+[IMPORTANT]
+====
+**Lab Credentials**
+
+Different services in this lab use different credentials:
+
+* **Automation Controller:** `admin` / `ansible123!`
+* **Gitea (Git Repository):** `gitea` / `gitea`
+* **VS Code & RHEL System:** Access via browser tabs (no login required)
+====
+
+---
+
+== Task 1: Sign Up for Ansible Lightspeed Trial
+
+Before using Ansible Lightspeed, you need to sign up for a trial subscription. This requires creating a Red Hat account and subscribing to both Ansible Automation Platform and Ansible Lightspeed trials.
+
+[IMPORTANT]
+====
+**If you have previously completed this lab:**
+
+* **Within 60-day trial window:** If you completed this lab within the last 60 days, your trial is still active. Use the same Red Hat account and skip to Task 2.
+
+* **After 60-day trial window:** If your trial has expired, you will need to create a **new Red Hat account using a different email address** to access new AAP and Lightspeed trials. Each account can only access the trial once.
+
+* **If you have an AAP subscription:** If your email is already attached to a paid AAP subscription, you can still access the Ansible Lightspeed trial with that account.
+
+* **No available email addresses:** Unfortunately, there is no workaround if you do not have access to a new email address. Each Red Hat account can only activate the trial one time.
+====
 
 [NOTE]
 ====
-You can perform the lab work in either the `RHEL` tab or the `RHEL-New Tab`. If the resolution feels small, you can hide the instructions sidebar or use the `RHEL-New Tab` to work in a full-screen browser window.
-
-If the embedded RHEL screen becomes unresponsive, please try refreshing the page.
+If you already have a Red Hat account with active Ansible Lightspeed trial access, you can skip to Task 2.
 ====
 
-The login credentials for the `Controller` and the RHEL workstation's Cockpit interface are:
+=== Step 1: Create a Red Hat Account
 
-* **Username:** `student`
-* **Password:** `learn_ansible`
+.   **Visit the Red Hat account creation page** at link:https://www.redhat.com/wapps/ugc/register.html[access.redhat.com]
+
+.   **Complete the registration form** with your information and verify your email address.
+
+=== Step 2: Subscribe to Ansible Automation Platform Trial
+
+.   **Visit the Ansible Automation Platform trial page** at link:https://www.redhat.com/en/technologies/management/ansible/trial[https://www.redhat.com/en/technologies/management/ansible/trial]
+
+.   **Log in** with your newly created Red Hat account credentials.
+
+.   **Complete the trial signup** process for Ansible Automation Platform.
+
+[IMPORTANT]
+====
+You must have an active Ansible Automation Platform trial subscription before you can access the Ansible Lightspeed trial.
+====
+
+=== Step 3: Enable Ansible Lightspeed Trial
+
+You will enable the Ansible Lightspeed trial directly from VS Code as part of the connection process in Task 2.
 
 ---
 
-== Copy and Paste Instructions for the RHEL Workstation
+== Task 2: Enable and Connect Ansible Lightspeed in VS Code
 
-The lab uses a VNC browser instance to access the RHEL workstation. Some browsers, like Firefox and Safari, do not support direct copy and paste. The **Chrome** browser is recommended.
+Now you will enable Ansible Lightspeed in VS Code and connect it to the trial service.
 
-If you are not using Chrome, you can use the **VNC Clipboard utility** to copy and paste between your local machine and the lab instance.
+=== Step 1: Open VS Code and Enable Lightspeed Settings
 
-.   **Open the VNC Clipboard utility** on the `RHEL` tab by pressing:
-    * `CTRL`+`ALT`+`SHIFT` on Windows or Linux.
-    * `CTRL`+`OPTION`+`SHIFT` on Mac.
+.   **Open the VS Code tab** at the top of your lab environment.
 
-.   **Use the clipboard text area** as an interface between your local and remote clipboards.
-+
-image:../assets/vnc_sidebar_clipboard.png[VNC sidebar clipboard utility, opts="border"]
+.   **Navigate to the Ansible extension settings:**
+    * Click the **Extensions** icon on the left sidebar
+    * Find the **Ansible** extension
+    * Click the gear icon (⚙️)
+    * Select **Extension Settings**
 
-.   **Close the utility** by pressing the same key combination again.
-
----
-
-== Task 1: Enable Ansible Lightspeed
-
-First, you will enable the Ansible Lightspeed features within the VS Code extension settings.
-
-.   **Open Visual Studio Code** by double-clicking the icon on the RHEL desktop.
-+
-image:../assets/vscode_open.png[VS Code icon on the desktop, opts="border"]
-
-.   **Navigate to the Ansible extension settings.**
-+
-    **Click** the **Extensions** icon on the left sidebar, find the **Ansible** extension, **click** the gear icon (⚙️), and select **Extension Settings**.
-+
-image:../assets/open_extension_settings.png[Opening extension settings, opts="border"]
-
-.   **Filter the settings for Lightspeed.**
-+
-    **Click** the **Workspace** tab *(arrow 1)* and type `lightspeed` in the search bar *(arrow 2)* to filter the options.
-+
-image:../assets/lightspeed-101-4-vscode-settings.png[Filtering for Lightspeed settings in the Workspace tab, opts="border"]
-
-.   **Enable the Lightspeed features.**
-+
-    **Check** both boxes to enable the functionality:
-+
-    * Enable Ansible Lightspeed
-    * Enable Ansible Lightspeed with Watson Code Assistant inline suggestions
-+
-image::../assets/lightspeed-101-5-vscode-settings.png[Enabling both Lightspeed options, opts="border"]
+.   **Enable Lightspeed features:**
+    * Click the **Workspace** tab
+    * Type `lightspeed` in the search bar to filter settings
+    * Check both boxes:
+      ** Enable Ansible Lightspeed
+      ** Enable Ansible Lightspeed with Watson Code Assistant inline suggestions
 
 [IMPORTANT]
 ====
 Please ensure you configure these settings in the VS Code **Workspace** tab, not the User tab.
 ====
 
----
+=== Step 2: Connect to Ansible Lightspeed Service
 
-== Task 2: Activate Ansible Lightspeed
+.   **Click the Ansible extension icon** on the left sidebar in VS Code.
 
-Next, you will connect your VS Code instance to the Ansible Lightspeed service.
+.   **Click the Connect button** in the Ansible Lightspeed section.
 
-.   **Begin the connection process.**
-+
-    **Click** the Ansible extension icon on the left sidebar, then **click** **Connect**.
-+
-image:../assets/lightspeed-101-6-connect-vscode-settings.png[Connect to Ansible Lightspeed, opts="border"]
+.   **Follow the authentication prompts:**
+    * VS Code will show pop-ups guiding you through authentication
+    * Click **Allow** when prompted to open the authentication page
+    * Click **Open** to launch your browser
 
-.   **Follow the authentication prompts.**
-+
-    A series of pop-ups will guide you through the authentication process. **Click Allow** and **Open** when prompted.
-+
-image:../assets/lightspeed-101-7-signin-vscode-settings.png[Sign-in prompt, opts="border"]
-image:../assets/lightspeed-101-8-openauth-vscode-settings.png[Open authentication link prompt, opts="border"]
+.   **Log in with your Red Hat account:**
+    * A browser window will open to the Red Hat login page
+    * Enter your Red Hat account credentials (the account you created in Task 1)
+    * Click **Log In**
 
-.   **Authorize the application in Firefox.**
-+
-    A Firefox browser window will open.
-+
-    a. The first step is to log in. The credentials are pre-loaded for this lab, so simply **click the login button**.
-+
-image:../assets/lightspeed-101-9-login-vscode-settings.png[Login button in Firefox, opts="border"]
-+
-    b. In the new pop-up, **click** the **Authorize** button.
-+
-image:../assets/lightspeed-101-10-auth-vscode-settings.png[Authorize button, opts="border"]
-+
-    c. In the final Firefox pop-up, **click** the **Open Link** button.
-+
-image:../assets/lightspeed-101-11-openlink-vscode-settings.png[Open Link button, opts="border"]
+.   **Authorize VS Code to access Ansible Lightspeed:**
+    * After logging in, you'll see an authorization page
+    * Click **Authorize** to grant VS Code access
 
-.   **Confirm the link in VS Code.**
-+
-    Return to VS Code, where a pop-up will ask you to open the URL. **Click** the **Open** button.
-+
-image:../assets/lightspeed-101-12-openurl-vscode-settings.png[Open URL prompt in VS Code, opts="border"]
+.   **Enable the Ansible Lightspeed trial (if not already enabled):**
+    * If you have an active AAP trial subscription, you'll see an option to enable the Ansible Lightspeed trial
+    * Click to enable the trial
+    * This step may be automatic if you've already enabled the trial
 
-.   **Verify the connection.**
-+
-    Once you have successfully logged in and authorized the service, you will see `Logged in as...` in the Ansible extension sidebar and a confirmation pop-up in the bottom right corner of VS Code.
-+
-image:../assets/lightspeed-101-13-verifyenabled-vscode-settings.png[Successful login verification, opts="border"]
+.   **Complete the connection:**
+    * The browser will redirect back to VS Code
+    * Click **Open** in the VS Code prompt to complete the connection
 
-[WARNING]
+.   **Verify the connection:**
+    * In the Ansible extension sidebar, you should see `Logged in as <your-email>`
+    * A confirmation notification will appear in the bottom right corner
+
+[TIP]
 ====
-If you receive a timeout warning, don't worry. Just click **Connect** in the Ansible extension again and repeat the authorization steps in Firefox.
-image:../assets/vscode_login_timeout.png[Login timeout warning, opts="border"]
+If you receive a timeout warning, simply click **Connect** in the Ansible extension again and repeat the authorization steps.
 ====
 
 ---
 
 == Next Steps
 
-Press the `Check` button below to proceed to the next challenge.
+Congratulations! You have successfully configured Ansible Lightspeed in VS Code. You are now ready to start generating Ansible content using AI-powered suggestions.
 
-=== Need Help?
-
-* **Solution Video:** A solution video is available below.
-* **Skip This Challenge:** You can click the `Skip` button at the bottom right to move to the next challenge.
-+
-[NOTE]
+[IMPORTANT]
 ====
-Please do not skip this challenge, otherwise you will not be able to get suggestions from Ansible Lightspeed.
+**Do not skip this module!** Without completing the Ansible Lightspeed setup, you will not be able to get AI suggestions in the subsequent challenges.
 ====
 
-=== Solution Video
-
-.Enable Ansible Lightspeed and Activate it
-video::../assets/lightspeed_setup.gif[youtube]
+Press the button below to proceed to the next module where you will use Ansible Lightspeed to deploy Cockpit.
 
 ---
 
 == Additional Resources
 
-* link:https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed[More information] on Red Hat Ansible Lightspeed with IBM watsonx Code Assistant.
-* link:https://www.redhat.com/en/engage/redhat-ansible-automation-202108061218[Self-paced exercises] - Explore all our self-paced Ansible labs.
-* link:http://red.ht/try_ansible[Trial subscription] - Get your trial subscription for unlimited access to all the components of Ansible Automation Platform.
-* link:https://www.youtube.com/ansibleautomation[Red Hat Ansible Automation Platform YouTube channel].
+* link:https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed[More information] on Red Hat Ansible Lightspeed with IBM watsonx Code Assistant
+* link:https://www.redhat.com/en/technologies/management/ansible/trial[Ansible Automation Platform Trial] - Sign up for AAP trial
+* link:https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant[Ansible Lightspeed Documentation]
+* link:https://www.youtube.com/ansibleautomation[Red Hat Ansible Automation Platform YouTube channel]
+
+---
 
 == Troubleshooting
 
-If you have encountered an issue or have noticed something not quite right, please link:https://github.com/ansible/instruqt/issues/new?labels=lightspeed-101&title=New+Intro+to+Lightspeed+issue:+configure-tools&assignees=craig-br[open an issue on GitHub].
+=== Common Issues
+
+**Issue: "I don't see the option to enable Ansible Lightspeed trial"**
+
+* Solution: Ensure you have completed the Ansible Automation Platform trial signup first. The Lightspeed trial requires an active AAP trial subscription.
+
+**Issue: "Connection times out during authentication"**
+
+* Solution: Click **Connect** in the Ansible extension again and repeat the authorization steps. Make sure pop-ups are not blocked in your browser.
+
+**Issue: "I already have a Red Hat account but no AAP trial"**
+
+* Solution: Visit link:https://www.redhat.com/en/technologies/management/ansible/trial[the AAP trial page] and sign up using your existing Red Hat account.
+
+If you encounter other issues, please check the link:https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant[official documentation] or contact Red Hat support.
