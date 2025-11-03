@@ -149,22 +149,32 @@ Please ensure you configure these settings in the VS Code **Workspace** tab, not
     * After logging in, you'll see an authorization page
     * Click **Authorize** to grant VS Code access
 
-.   **Enable the Ansible Lightspeed trial (if not already enabled):**
-    * If you have an active AAP trial subscription, you'll see an option to enable the Ansible Lightspeed trial
-    * Click to enable the trial
-    * This step may be automatic if you've already enabled the trial
-
-.   **Complete the connection:**
+.   **Complete the authentication redirect:**
     * The browser will redirect back to VS Code
     * Click **Open** in the VS Code prompt to complete the connection
+    * You should now see `Logged in as <your-email>` in the Ansible extension sidebar
 
-.   **Verify the connection:**
-    * In the Ansible extension sidebar, you should see `Logged in as <your-email>`
-    * A confirmation notification will appear in the bottom right corner
+.   **Start the Ansible Lightspeed trial:**
+    * In the Ansible extension sidebar (left side), look for the **Start Trial** button in the Ansible Lightspeed section
+    * Click the **Start Trial** button
+    * A browser window will open with the Ansible Lightspeed trial terms and conditions
+    * **Read and accept the terms and conditions**
+    * After accepting, the browser will confirm your trial is activated
+
+.   **Refresh and verify the trial is enabled:**
+    * Return to VS Code
+    * In the Ansible Lightspeed section of the Ansible extension sidebar, click the **refresh icon** (circular arrow)
+    * You should now see that your Ansible Lightspeed trial is enabled and active
+    * A confirmation notification may appear in the bottom right corner
+
+[IMPORTANT]
+====
+**The Ansible Lightspeed trial is NOT automatically activated after AAP trial signup.** You must explicitly click **Start Trial** in VS Code and accept the terms and conditions for the trial to become active.
+====
 
 [TIP]
 ====
-If you receive a timeout warning, simply click **Connect** in the Ansible extension again and repeat the authorization steps.
+If you receive a timeout warning during authentication, simply click **Connect** in the Ansible extension again and repeat the authorization steps.
 ====
 
 ---
@@ -195,6 +205,14 @@ Press the button below to proceed to the next module where you will use Ansible 
 
 === Common Issues
 
+**Issue: "I'm logged in but don't see the Start Trial button"**
+
+* Solution: Make sure you have completed the AAP trial signup first. The Start Trial button only appears if you have an active AAP trial subscription. Try clicking the refresh icon in the Ansible Lightspeed section.
+
+**Issue: "I clicked Start Trial but my trial still shows as not enabled"**
+
+* Solution: After accepting the terms and conditions in the browser, return to VS Code and click the **refresh icon** (circular arrow) in the Ansible Lightspeed section of the Ansible extension sidebar.
+
 **Issue: "I don't see the option to enable Ansible Lightspeed trial"**
 
 * Solution: Ensure you have completed the Ansible Automation Platform trial signup first. The Lightspeed trial requires an active AAP trial subscription.
@@ -206,5 +224,9 @@ Press the button below to proceed to the next module where you will use Ansible 
 **Issue: "I already have a Red Hat account but no AAP trial"**
 
 * Solution: Visit link:https://www.redhat.com/en/technologies/management/ansible/trial[the AAP trial page] and sign up using your existing Red Hat account.
+
+**Issue: "My 60-day trial has expired and I don't have another email address"**
+
+* Solution: Unfortunately, there is no workaround. Each Red Hat account can only activate the trial one time. You would need a different email address to create a new account.
 
 If you encounter other issues, please check the link:https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant[official documentation] or contact Red Hat support.
