@@ -58,31 +58,53 @@ You will now edit a pre-created playbook file and use natural language prompts t
 
 .   **Open the playbook file in VS Code.**
 +
-    In the **VS Code** tab, navigate to the file explorer and **open** `playbooks/infra/install_cockpit/demo_install_cockpit.yml`.
+    a. Click on the **VS Code** tab at the top of your lab environment.
++
+    b. On the left side of VS Code, locate the **Explorer** icon (it looks like two overlapping documents) and click it to show the file explorer.
++
+    c. In the file explorer, expand the folders: **playbooks** → **infra** → **install_cockpit**
++
+    d. Click on **demo_install_cockpit.yml** to open it in the editor.
 
 .   **Generate the `cockpit` installation task.**
 +
-    **Uncomment** the first task name by removing the `#` or pressing `CTRL+/`.
+    a. In the playbook file, find the line that says:
 +
 [source,yaml]
 ----
-# - name: Install cockpit using redhat.rhel_system_roles collection
+    #- name: Install cockpit using redhat.rhel_system_roles collection
 ----
 +
-    **Place** your cursor at the end of the line and press `ENTER`. Ansible Lightspeed will generate a task suggestion. **Press** `TAB` to accept it.
+    b. **Remove the `#` symbol** at the beginning of the line. You can either:
+       * Delete the `#` manually, OR
+       * Click anywhere on the line and press `CTRL+/` (Windows/Linux) or `CMD+/` (Mac) to uncomment it
++
+    c. **Place your cursor at the very end of the line** (after "collection")
++
+    d. **Press `ENTER`** to create a new line
++
+    e. Wait a moment - Ansible Lightspeed will show a suggestion in gray text
++
+    f. **Press `TAB`** to accept the suggestion
 +
     _Lightspeed Highlight:_ The suggestion correctly uses the `redhat.rhel_system_roles.cockpit` role as specified in the prompt, incorporating best practices like using the Fully Qualified Collection Name (FQCN).
 
 .   **Generate the file copy task.**
 +
-    **Uncomment** the next task name:
+    a. Find the next commented line:
 +
 [source,yaml]
 ----
-# - name: Copy cockpit.conf.j2 to /etc/cockpit
+    #- name: Copy cockpit.conf.j2 to /etc/cockpit directory
 ----
 +
-    **Place** your cursor at the end of the line, press `ENTER`, and then `TAB` to accept the suggestion.
+    b. **Uncomment the line** by removing the `#` (or press `CTRL+/` / `CMD+/`)
++
+    c. **Place your cursor at the end of the line** (after "directory")
++
+    d. **Press `ENTER`** to create a new line
++
+    e. **Press `TAB`** when Lightspeed shows a suggestion
 +
     _Lightspeed Highlight:_ Based on the `.j2` file extension in the prompt, Lightspeed correctly infers that the `ansible.builtin.template` module should be used and sets the correct file permissions.
 
@@ -90,19 +112,29 @@ You will now edit a pre-created playbook file and use natural language prompts t
 +
 [IMPORTANT]
 ====
-Remember that multi-task prompts have a different structure. They start with a `#`, separate tasks with an ampersand (`&`), and should not be uncommented.
+**Multi-task prompts work differently:** They start with a single `#`, separate multiple tasks with an ampersand (`&`), and should **NOT** be uncommented. Just press ENTER at the end of the comment line.
 ====
 +
-    Go to the end of the following line, press `ENTER`, and then `TAB` to accept the suggestion:
+    a. Find the line:
 +
 [source,yaml]
 ----
-# Restart and enable service & wait 15 seconds for it to be available
+    # Restart and enable service & wait 15 seconds for it to be available
 ----
++
+    b. **Do NOT uncomment this line** - leave the `#` symbol in place
++
+    c. **Place your cursor at the end of the line** (after "available")
++
+    d. **Press `ENTER`** to create a new line
++
+    e. **Press `TAB`** when Lightspeed shows suggestions for BOTH tasks
 +
     _Lightspeed Highlight:_ Lightspeed uses the full playbook context to infer that the service to restart is `cockpit`. It then uses the `&` separator to identify the second task and correctly uses the default Cockpit port (9090) in the `wait_for` module.
 
-.   **Save the playbook** by navigating to **File** → **Save** or by pressing `CTRL+S`.
+.   **Save the playbook.**
++
+    Click **File** → **Save** from the top menu, or press `CTRL+S` (Windows/Linux) or `CMD+S` (Mac).
 
 == Task 2: Review Ansible Lightspeed Training Matches
 
@@ -110,11 +142,23 @@ One of Ansible Lightspeed's key differentiators is providing information on the 
 
 .   **Open the Lightspeed Training Matches view.**
 +
-    In VS Code, open the View menu by clicking **View** → **Open View...**, search for `Lightspeed`, and select **Lightspeed Training Matches**.
+    a. At the top of VS Code, click **View** in the menu bar
++
+    b. Select **Open View...**
++
+    c. In the search box that appears, type `Lightspeed`
++
+    d. Click on **Lightspeed Training Matches** from the list
 
 .   **Examine a training match.**
 +
-    Choose any task description in your playbook and regenerate a suggestion. The Training Matches pane will populate with potential sources. **Click** on any entry to see details including the content source, author, and license.
+    a. In your playbook, click on any task name you generated
++
+    b. Delete one line of the generated code and press `ENTER` to regenerate the suggestion
++
+    c. Look at the **Lightspeed Training Matches** pane (usually at the bottom of VS Code)
++
+    d. You'll see potential training sources. **Click** on any entry to see details including the content source, author, and license information.
 
 == Task 3: Run the Playbook
 
@@ -122,45 +166,77 @@ You can now choose to run the completed `demo_install_cockpit.yml` playbook usin
 
 === Option 1: Using Automation Controller
 
-.   **Commit and push the playbook.**
+.   **Commit and push the playbook to Git.**
 +
-    In VS Code, **click** the **Source Control** icon. **Click** the **+** icon next to the playbook name to stage the changes, enter a commit message (e.g., `Install Cockpit`), and **click** the **Commit** button. Finally, **click** **Sync Changes** to push the playbook to the repository.
+    a. On the left side of VS Code, click the **Source Control** icon (it looks like a branch with circles)
++
+    b. You should see `demo_install_cockpit.yml` listed under "Changes"
++
+    c. Hover over the file name and click the **+** (plus) icon that appears to stage the changes
++
+    d. At the top, in the "Message" box, type a commit message like: `Install Cockpit`
++
+    e. Click the **Commit** button (checkmark icon)
++
+    f. Click the **Sync Changes** button to push your playbook to the Git repository
 
-.   **Run the `Deploy monitoring` Job Template.**
+.   **Run the playbook from Automation Controller.**
 +
-    Go to the **Ansible Automation Platform** tab. Log in with credentials `admin` / `ansible123!` if prompted. Navigate to **Resources** → **Templates** and **click** the launch icon (🚀) next to the **Deploy monitoring** Job Template.
+    a. Click the **Ansible Automation Platform** tab at the top of the lab window
 +
-    Wait for the job to complete successfully.
+    b. If you see a login screen, enter:
+       * **Username:** `admin`
+       * **Password:** `ansible123!`
++
+    c. On the left sidebar, click **Resources** → **Templates**
++
+    d. Find the template named **Deploy monitoring**
++
+    e. Click the **launch icon** (🚀 rocket ship) on the right side of that row
++
+    f. Wait for the job to complete successfully (you'll see a green "Successful" status)
 
 === Option 2: Using ansible-navigator
 
 .   **Open a terminal in VS Code.**
 +
-    In the **VS Code** tab, click **Terminal** → **New Terminal**.
+    a. Make sure you're on the **VS Code** tab
++
+    b. Look at the top menu bar and click **Terminal** → **New Terminal**
++
+    c. A terminal panel will open at the bottom of VS Code
 
-.   **Navigate to the correct folder.**
+.   **Navigate to the playbook folder.**
++
+    In the terminal, type the following command and press `ENTER`:
 +
 [source,bash]
 ----
 cd playbooks/infra/install_cockpit
 ----
 
-.   **Run the playbook.**
+.   **Run the playbook with ansible-navigator.**
++
+    Type the following command and press `ENTER`:
 +
 [source,bash]
 ----
 ansible-navigator run demo_install_cockpit.yml
 ----
 +
-Press the `ESC` key to return to the prompt after the playbook completes.
+    The playbook will run and show you the results. Press the `ESC` key to return to the terminal prompt when it's done.
 
 == Task 4: Verify the Cockpit Installation
 
 Finally, verify that the Cockpit web interface is accessible.
 
-.   **Open the Cockpit tab** at the top of the lab window.
+.   **Open the Cockpit web interface.**
++
+    At the very top of your lab environment, click the **Cockpit** tab.
 
-.   **Verify the Cockpit UI is accessible.** If the playbook completed successfully, you should see the Cockpit web interface.
+.   **Verify Cockpit is running.**
++
+    If the playbook completed successfully, you should see the Cockpit web console interface. This confirms that Cockpit was installed, configured, and started correctly!
 
 ---
 
