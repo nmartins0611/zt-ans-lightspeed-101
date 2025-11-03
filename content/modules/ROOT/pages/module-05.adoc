@@ -11,6 +11,27 @@ _A guide to using Ansible Lightspeed to generate a playbook that provisions a vi
 
 == Introduction and Setup
 
+[IMPORTANT]
+====
+**Important Note About This Lab**
+
+IBM watsonx Code Assistant models are continuously updated and improved. As a result, some specific task generation challenges in this lab may not work exactly as described due to model updates. This is expected behavior.
+
+**The primary goal of this lab is to help you understand the key features of Ansible Lightspeed, including:**
+
+* **Playbook Generation** - Generating entire playbooks from natural language prompts
+* **Task Generation** - Generating individual tasks or multiple tasks at once
+* **Training Matches** - Understanding the transparency of AI suggestions
+* **Best Practices** - Learning how Lightspeed incorporates Ansible best practices
+
+**If a specific prompt doesn't generate suggestions as expected:**
+
+* Try **playbook generation** instead of task generation (delete the play structure and generate the entire playbook from a prompt)
+* Experiment with different prompt variations to see what gives you the best suggestions
+* Simplify complex multi-task prompts into separate single-task prompts
+* The learning objectives remain the same: understanding how to work with AI-assisted Ansible development
+====
+
 In this challenge, you will use Ansible Lightspeed to generate an Ansible Playbook that automates the provisioning of a Microsoft Azure Virtual Machine.
 
 === Your Mission

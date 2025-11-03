@@ -227,6 +227,21 @@ if [ -f "${PGSQL_SOLUTION}" ]; then
     echo "  Removed firewall task from ${PGSQL_SOLUTION}"
 fi
 
+# Update cockpit task name to include "directory" at the end for better Lightspeed suggestions
+echo "Updating cockpit playbook task names..."
+COCKPIT_DEMO="/home/rhel/${REPO_NAME}/playbooks/infra/install_cockpit/demo_install_cockpit.yml"
+COCKPIT_SOLUTION="/home/rhel/${REPO_NAME}/playbooks/infra/install_cockpit/solution_install_cockpit.yml"
+
+if [ -f "${COCKPIT_DEMO}" ]; then
+    sudo -u rhel sed -i 's/Copy cockpit\.conf\.j2 to \/etc\/cockpit$/Copy cockpit.conf.j2 to \/etc\/cockpit directory/g' "${COCKPIT_DEMO}"
+    echo "  Updated task name in ${COCKPIT_DEMO}"
+fi
+
+if [ -f "${COCKPIT_SOLUTION}" ]; then
+    sudo -u rhel sed -i 's/Copy cockpit\.conf\.j2 to \/etc\/cockpit$/Copy cockpit.conf.j2 to \/etc\/cockpit directory/g' "${COCKPIT_SOLUTION}"
+    echo "  Updated task name in ${COCKPIT_SOLUTION}"
+fi
+
 # Commit and push .gitignore and updated inventory files to remote
 echo "Committing and pushing configuration updates..."
 cd /home/rhel/${REPO_NAME}
@@ -234,6 +249,8 @@ sudo -u rhel git add .gitignore inventory.yml \
     playbooks/infra/install_cockpit/inventory/inventory.yml \
     playbooks/infra/install_apache/inventory/inventory.yml \
     playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml \
+    playbooks/infra/install_cockpit/demo_install_cockpit.yml \
+    playbooks/infra/install_cockpit/solution_install_cockpit.yml \
     playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml \
     playbooks/infra/install_pgsql_and_pgadmin/solution_install_pgsql_pgadmin.yml
 sudo -u rhel git commit -m "Update inventory and playbooks for new lab platform" || true
