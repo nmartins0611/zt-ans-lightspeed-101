@@ -57,46 +57,81 @@ You will now edit a pre-created playbook file and use natural language prompts t
 
 .   **Open the playbook file in VS Code.**
 +
-    In the **VS Code** tab, navigate to the file explorer and **open** `playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml`.
+    a. Click on the **VS Code** tab at the top of your lab environment
++
+    b. On the left side of VS Code, click the **Explorer** icon (two overlapping documents) to show the file explorer
++
+    c. In the file explorer, expand these folders: **playbooks** → **infra** → **install_pgsql_and_pgadmin**
++
+    d. Click on **demo_install_pgsql_pgadmin.yml** to open it in the editor
 
 .   **Generate the PostgreSQL installation task.**
 +
-    **Uncomment** the first task name by removing the `#` or pressing `CTRL+/`.
+    a. In the playbook file, find the line:
 +
 [source,yaml]
 ----
-# - name: Install postgresql server package
+    #- name: Install postgresql server package
 ----
 +
-    **Place** your cursor at the end of the line and press `ENTER`. Ansible Lightspeed will generate a task suggestion. **Press** `TAB` to accept it.
+    b. **Remove the `#` symbol** at the beginning of the line (or press `CTRL+/` for Windows/Linux or `CMD+/` for Mac)
++
+    c. **Place your cursor at the very end of the line** (after "package")
++
+    d. **Press `ENTER`** to create a new line
++
+    e. Wait a moment - Ansible Lightspeed will show a suggestion in gray text
++
+    f. **Press `TAB`** to accept the suggestion
 +
     _Lightspeed Highlight:_ The suggestion correctly uses the `ansible.builtin.dnf` module and incorporates best practices.
 
 .   **Generate the multi-task for config, start, and firewall.**
 +
-    Go to the end of the following multi-task prompt line, press `ENTER`, and then `TAB` to accept the suggestion:
+[IMPORTANT]
+====
+**Multi-task prompt:** This comment line starts with a single `#` and uses `&` to separate multiple tasks. Do NOT uncomment this line - just press ENTER at the end.
+====
++
+    a. Find the line:
 +
 [source,yaml]
 ----
-# Do initial postgresql config & start the service & allow the traffic through the firewall
+    # Do initial postgresql config & start the service & allow the traffic through the firewall
 ----
++
+    b. **Do NOT uncomment this line** - leave the `#` symbol in place
++
+    c. **Place your cursor at the end of the line** (after "firewall")
++
+    d. **Press `ENTER`** to create a new line
++
+    e. **Press `TAB`** when Lightspeed shows suggestions for all THREE tasks
 +
     _Lightspeed Highlight:_ Lightspeed uses the playbook context to infer the correct service (`postgresql`) and default port (`5432/tcp`) and generates three distinct, idempotent tasks from this single prompt.
 
 .   **Generate the Podman container task.**
 +
-    **Uncomment** the final task name:
+    a. Find the commented line:
 +
 [source,yaml]
 ----
-# - name: Create podman container using pgadmin_container var
+    #- name: Create podman container using pgadmin_container var
 ----
 +
-    **Place** your cursor at the end of the line, press `ENTER`, and then `TAB` to accept the suggestion.
+    b. **Uncomment the line** by removing the `#` (or press `CTRL+/` / `CMD+/`)
++
+    c. **Place your cursor at the end of the line** (after "var")
++
+    d. **Press `ENTER`** to create a new line
++
+    e. **Press `TAB`** when Lightspeed shows a suggestion
 +
     _Lightspeed Highlight:_ Lightspeed correctly identifies that the `pgadmin_container` variable is defined in the playbook's `vars` section and integrates it into the suggested task.
 
-.   **Save the playbook** by navigating to **File** → **Save** or by pressing `CTRL+S`.
+.   **Save the playbook.**
++
+    Click **File** → **Save** from the top menu, or press `CTRL+S` (Windows/Linux) or `CMD+S` (Mac).
 
 == Task 2: Review Ansible Lightspeed Training Matches
 
@@ -104,19 +139,23 @@ One of Ansible Lightspeed's key differentiators is providing information on the 
 
 .   **Open the Lightspeed Training Matches view.**
 +
-    In VS Code, open the View menu by clicking **View** → **Open View...**.
+    a. At the top of VS Code, click **View** in the menu bar
 +
-image:../assets/vscode_view_menu.png[VS Code View menu, opts="border"]
+    b. Select **Open View...**
 +
-    Search for `Lightspeed` and select **Lightspeed Training Matches**.
+    c. In the search box that appears, type `Lightspeed`
 +
-image:../assets/vscode_view_lightpseed.png[Opening the Lightspeed Training Matches view, opts="border"]
+    d. Click on **Lightspeed Training Matches** from the list
 
 .   **Examine a training match.**
 +
-    Choose any task description in your playbook and regenerate a suggestion. The Training Matches pane will populate with potential sources. **Click** on any entry to see details including the content source, author, and license.
+    a. In your playbook, click on any task name you generated
 +
-image:../assets/vscode_training_match.png[Example of a training match, opts="border"]
+    b. Delete one line of the generated code and press `ENTER` to regenerate the suggestion
++
+    c. Look at the **Lightspeed Training Matches** pane (usually at the bottom of VS Code)
++
+    d. You'll see potential training sources. **Click** on any entry to see details including the content source, author, and license information.
 
 == Task 3: Run the Playbook
 
@@ -124,45 +163,77 @@ You can now choose to run the completed playbook using either the automation con
 
 === Option 1: Using Automation Controller
 
-.   **Commit and push the playbook.**
+.   **Commit and push the playbook to Git.**
 +
-    In VS Code, **click** the **Source Control** icon. **Click** the **+** icon next to the playbook name to stage the changes, enter a commit message (e.g., `Install PostgreSQL`), and **click** the **Commit** button. Finally, **click** **Sync Changes** to push the playbook to the repository.
+    a. On the left side of VS Code, click the **Source Control** icon (it looks like a branch with circles)
++
+    b. You should see `demo_install_pgsql_pgadmin.yml` listed under "Changes"
++
+    c. Hover over the file name and click the **+** (plus) icon that appears to stage the changes
++
+    d. At the top, in the "Message" box, type a commit message like: `Install PostgreSQL and PGAdmin`
++
+    e. Click the **Commit** button (checkmark icon)
++
+    f. Click the **Sync Changes** button to push your playbook to the Git repository
 
-.   **Run the Job Template.**
+.   **Run the playbook from Automation Controller.**
 +
-    Go to the **Ansible Automation Platform** tab. Log in with credentials `admin` / `ansible123!` if prompted. Navigate to **Resources** → **Templates** and **click** the launch icon (🚀) next to the **Deploy PostgreSQL and PG Admin** Job Template.
+    a. Click the **Ansible Automation Platform** tab at the top of the lab window
 +
-    Wait for the job to complete successfully.
+    b. If you see a login screen, enter:
+       * **Username:** `admin`
+       * **Password:** `ansible123!`
++
+    c. On the left sidebar, click **Resources** → **Templates**
++
+    d. Find the template named **Deploy PostgreSQL and PG Admin**
++
+    e. Click the **launch icon** (🚀 rocket ship) on the right side of that row
++
+    f. Wait for the job to complete successfully (you'll see a green "Successful" status)
 
 === Option 2: Using ansible-navigator
 
 .   **Open a terminal in VS Code.**
 +
-    In the **VS Code** tab, click **Terminal** → **New Terminal**.
+    a. Make sure you're on the **VS Code** tab
++
+    b. Look at the top menu bar and click **Terminal** → **New Terminal**
++
+    c. A terminal panel will open at the bottom of VS Code
 
-.   **Navigate to the correct folder.**
+.   **Navigate to the playbook folder.**
++
+    In the terminal, type the following command and press `ENTER`:
 +
 [source,bash]
 ----
 cd playbooks/infra/install_pgsql_and_pgadmin
 ----
 
-.   **Run the playbook.**
+.   **Run the playbook with ansible-navigator.**
++
+    Type the following command and press `ENTER`:
 +
 [source,bash]
 ----
 ansible-navigator run demo_install_pgsql_pgadmin.yml
 ----
 +
-Press the `ESC` key to return to the prompt after the playbook completes.
+    The playbook will run and show you the results. Press the `ESC` key to return to the terminal prompt when it's done.
 
 == Task 4: Verify the PGAdmin Installation
 
 Finally, verify that the PGAdmin web interface is accessible.
 
-.   **Open the PGAdmin tab** at the top of the lab window.
+.   **Open the PGAdmin web interface.**
++
+    At the very top of your lab environment, click the **PGAdmin** tab.
 
-.   **Verify PGAdmin is accessible.** If the playbook completed successfully, you should see the PGAdmin login interface.
+.   **Verify PGAdmin is running.**
++
+    If the playbook completed successfully, you should see the PGAdmin login interface. This confirms that PostgreSQL was installed and PGAdmin container is running correctly!
 
 ---
 
