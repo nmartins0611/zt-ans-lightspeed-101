@@ -116,6 +116,11 @@ Now you will enable Ansible Lightspeed in VS Code and connect it to the trial se
     * If you need to reopen it, click the **VS Code** tab at the top of your lab environment
     * Note: Clicking the VS Code tab may open it in a new browser tab
 
+[IMPORTANT]
+====
+**Work in a new browser tab:** For the best experience with Ansible Lightspeed features, **click the VS Code tab to open it in a new browser tab** rather than using the inline embedded window.
+====
+
 .   **Navigate to the Ansible extension settings:**
     * Click the **Extensions** icon on the left sidebar
     * Find the **Ansible** extension
@@ -185,6 +190,88 @@ If VS Code prompts you to **Reload Window** to update the extensions, click the 
 [TIP]
 ====
 If you receive a timeout warning during authentication, simply click **Connect** in the Ansible extension again and repeat the authorization steps.
+====
+
+---
+
+== Task 3: Understanding Playbook Generation (Optional)
+
+Now that you've set up Ansible Lightspeed, let's explore the **playbook generation** feature. This is one of the most powerful features of Ansible Lightspeed, allowing you to create entire playbooks from natural language prompts.
+
+[IMPORTANT]
+====
+**Work in a new browser tab:** Ansible Lightspeed may not work correctly in the inline VS Code window embedded in the lab interface. **Always click the VS Code tab to open it in a new browser tab** for the best experience with Lightspeed features.
+====
+
+=== Step 1: Access Playbook Generation
+
+.   **Open the playbook generation interface:**
++
+    a. On the left side of VS Code, click the **Ansible** icon (looks like an "A")
++
+    b. In the **Ansible Lightspeed** section, click the **Generate a playbook** button
++
+       * Note: This button only appears after you have successfully logged in and activated your trial
+
+=== Step 2: Enter Your Prompt
+
+.   **Describe what you want to achieve:**
++
+    a. A new screen will open with a text box labeled "Describe what you want to achieve in natural language"
++
+    b. Enter a description of what you want your playbook to do
++
+    c. Click the **Analyze** button
+
+[TIP]
+====
+**Writing effective prompts:**
+
+* You do NOT need to include phrases like "Generate a playbook" or "Create a playbook" - the AI knows it's creating playbooks
+* Just describe what you want your playbook to do in plain language
+* Be specific about the tasks you want to accomplish
+
+**Example prompts:**
+
+* `for rhel hosts with sudo, install and configure Apache web server with SSL enabled`
+* `configure PostgreSQL database on CentOS hosts and create a backup user`
+
+You'll also see example prompts listed in the interface that you can use for inspiration.
+====
+
+=== Step 3: Review and Edit the Outline
+
+.   **Review the suggested playbook structure:**
++
+    a. After clicking Analyze, Ansible Lightspeed will show an outline of the playbook
++
+    b. The outline shows the suggested steps for your playbook
++
+    c. **The outline is editable** - you can modify the steps as needed to match your requirements
++
+    d. Review the outline and make any adjustments if necessary
+
+.   **Generate the playbook:**
++
+    a. Once you're satisfied with the outline, click the **Continue** button
++
+    b. Ansible Lightspeed will generate the complete playbook based on the outline
+
+=== Step 4: Save the Playbook
+
+.   **Save your generated playbook:**
++
+    a. The playbook will open as "Untitled" in the editor
++
+    b. Press `CTRL+S` (Windows/Linux) or `CMD+S` (Mac) to save the file
++
+    c. Give your playbook a descriptive name ending with `.yml` (for example: `install_apache.yml`, `configure_database.yml`)
++
+    d. Choose a location to save it (the `playbooks/` directory is recommended for organization)
+
+[NOTE]
+====
+You can experiment with playbook generation now, or proceed to the next module where you'll use both task generation and playbook generation features in hands-on challenges.
 ====
 
 ---

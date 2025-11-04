@@ -26,7 +26,7 @@ IBM watsonx Code Assistant models are continuously updated and improved. As a re
 
 **If a specific prompt doesn't generate suggestions as expected:**
 
-* Try **playbook generation** instead of task generation (delete the play structure and generate the entire playbook from a prompt)
+* Try **playbook generation** instead of task generation (click the Ansible icon → **Generate a playbook** button, enter your prompt, review the outline, and click Continue)
 * Experiment with different prompt variations to see what gives you the best suggestions
 * Simplify complex multi-task prompts into separate single-task prompts
 * The learning objectives remain the same: understanding how to work with AI-assisted Ansible development
@@ -84,6 +84,11 @@ All instructions are also available in the link:https://github.com/ansible/ansib
 === Select a Demo in VS Code
 
 .   **Open VS Code** by clicking the **VS Code** tab at the top of your lab environment.
+
+[IMPORTANT]
+====
+**Work in a new browser tab:** For the best experience with Ansible Lightspeed features, **click the VS Code tab to open it in a new browser tab** rather than using the inline embedded window.
+====
 
 .   **Browse the demo playbooks.**
 +
@@ -192,33 +197,61 @@ Generate an entire playbook from scratch using natural language:
 +
     a. On the left side of VS Code, click the **Ansible** icon (looks like an "A")
 +
-    b. In the **Ansible Lightspeed** section, click the **Create playbook with Ansible Lightspeed** button
+    b. In the **Ansible Lightspeed** section, click the **Generate a playbook** button
++
+       * Note: This button only appears after you have successfully logged in and activated your trial
 
 .   **Enter your prompt:**
 +
-    a. A text box will appear asking for a prompt
+    a. A new screen will open with a text box labeled "Describe what you want to achieve in natural language"
 +
-    b. Enter a description of what you want to automate (e.g., "for rhel hosts with sudo, Install cockpit using redhat.rhel_system_roles collection & Copy cockpit.conf.j2 to /etc/cockpit directory & Restart and enable service")
+    b. Enter a description of what you want your playbook to do
 +
-    c. Click **Submit**
+    c. Click the **Analyze** button
 
-.   **Review the outline:**
+[TIP]
+====
+**Writing effective prompts:**
+
+* You do NOT need to include phrases like "Generate a playbook" or "Create a playbook" - the AI knows it's creating playbooks
+* Just describe what you want your playbook to do in plain language
+* Be specific about the tasks you want to accomplish
+
+**Example prompts:**
+
+* `for rhel hosts with sudo, install and configure Apache web server with SSL enabled`
+* `configure PostgreSQL database on CentOS hosts and create a backup user`
+
+You'll also see example prompts listed in the interface that you can use for inspiration.
+====
+
+.   **Review and edit the outline:**
 +
-    a. Lightspeed will show an editable outline of the playbook structure
+    a. After clicking Analyze, Ansible Lightspeed will show an outline of the playbook
 +
-    b. You can edit the outline to adjust the playbook structure if needed
+    b. The outline shows the suggested steps for your playbook
 +
-    c. Click **Generate Playbook** to create the full playbook
+    c. **The outline is editable** - you can modify the steps as needed to match your requirements
++
+    d. Review the outline and make any adjustments if necessary
+
+.   **Generate the playbook:**
++
+    a. Once you're satisfied with the outline, click the **Continue** button
++
+    b. Ansible Lightspeed will generate the complete playbook based on the outline
 
 .   **Save the playbook:**
 +
-    a. The playbook will open as "Untitled"
+    a. The playbook will open as "Untitled" in the editor
 +
-    b. Press `CTRL+S` (Windows/Linux) or `CMD+S` (Mac) to save
+    b. Press `CTRL+S` (Windows/Linux) or `CMD+S` (Mac) to save the file
 +
-    c. **Option A:** Save with the same name as the demo playbook (e.g., `demo_install_cockpit.yml`) to use the existing job template
+    c. Give your playbook a descriptive name ending with `.yml` (for example: `install_apache.yml`, `configure_database.yml`)
 +
-    d. **Option B:** Save with a different name - you'll need to create a new job template in AAP after pushing to Git
+    d. Choose a location to save it (the `playbooks/` directory is recommended for organization)
++
+    e. **Note:** If you save with the same name as a demo playbook (e.g., `demo_install_cockpit.yml`), you can use the existing job template in AAP. Otherwise, you'll need to create a new job template
 
 ==== Method 2: Task Generation
 

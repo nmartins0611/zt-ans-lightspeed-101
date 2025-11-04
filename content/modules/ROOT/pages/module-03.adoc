@@ -26,7 +26,7 @@ IBM watsonx Code Assistant models are continuously updated and improved. As a re
 
 **If a specific prompt doesn't generate suggestions as expected:**
 
-* Try **playbook generation** instead of task generation (delete the play structure and generate the entire playbook from a prompt)
+* Try **playbook generation** instead of task generation (click the Ansible icon → **Generate a playbook** button, enter your prompt, review the outline, and click Continue)
 * Experiment with different prompt variations to see what gives you the best suggestions
 * Simplify complex multi-task prompts into separate single-task prompts
 * The learning objectives remain the same: understanding how to work with AI-assisted Ansible development
@@ -58,6 +58,11 @@ You will now edit a pre-created playbook file and use natural language prompts t
 .   **Open the playbook file in VS Code.**
 +
     a. Click on the **VS Code** tab at the top of your lab environment
++
+[IMPORTANT]
+====
+**Work in a new browser tab:** For the best experience with Ansible Lightspeed features, **click the VS Code tab to open it in a new browser tab** rather than using the inline embedded window.
+====
 +
     b. On the left side of VS Code, click the **Explorer** icon (two overlapping documents) to show the file explorer
 +
