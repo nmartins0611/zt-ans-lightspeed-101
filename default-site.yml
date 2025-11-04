@@ -1,6 +1,6 @@
 ---
 site:
-  title: Terraform & Red Hat Ansible Automation Platform (AAP 2.5)
+  title: Getting started with Red Hat Ansible Lightspeed with IBM Watsonx Code Assistant
   url: https://redhat-scholars.github.io/course-template
   start_page: modules::index.adoc
 
