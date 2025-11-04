@@ -48,18 +48,6 @@ All demo content is available in the link:https://github.com/ansible/ansible-lig
 
 ---
 
-== Model Customization Overview
-
-This lab also provides a video reference to **model customization**, a powerful feature of Ansible Lightspeed. Model customization lets you change the behavior of the default AI model by training it with your organization's existing automation content. This is a simple three-step process:
-
-.   **Create training data** from your Ansible automation code using the `ansible-content-parser` CLI tool.
-.   **Feed the training data** to the default model to customize it, using the IBM watsonx.ai Tuning Studio.
-.   **Use the new model ID** from the Tuning Studio in your Ansible extension settings in Visual Studio Code.
-
-NOTE: The lab includes the following video for reference: `../assets/AnsibleLightspeed_ModelCustomization.mp4`.
-
----
-
 == The Playground Environment
 
 This lab is designed as a "choose your own adventure" playground. The following tabs are available for you to explore.
