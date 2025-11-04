@@ -266,8 +266,12 @@ sudo -u rhel git add .gitignore inventory.yml \
     playbooks/infra/install_cockpit/demo_install_cockpit.yml \
     playbooks/infra/install_cockpit/solution_install_cockpit.yml \
     playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml \
-    playbooks/infra/install_pgsql_and_pgadmin/solution_install_pgsql_pgadmin.yml
-sudo -u rhel git commit -m "Update inventory and playbooks for new lab platform" || true
+    playbooks/infra/install_pgsql_and_pgadmin/solution_install_pgsql_pgadmin.yml \
+    playbooks/infra/install_cockpit/ansible-navigator.yml \
+    playbooks/infra/install_pgsql_and_pgadmin/ansible-navigator.yml \
+    playbooks/cloud/aws/ansible-navigator.yml \
+    playbooks/cloud/azure/ansible-navigator.yml
+sudo -u rhel git commit -m "Update inventory, playbooks, and ansible-navigator config for new lab platform" || true
 sudo -u rhel git push origin devel || true
 
 # Pull execution environment image from Quay
