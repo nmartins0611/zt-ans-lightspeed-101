@@ -26,7 +26,7 @@ IBM watsonx Code Assistant models are continuously updated and improved. As a re
 
 **If a specific prompt doesn't generate suggestions as expected:**
 
-* Try **playbook generation** instead of task generation (delete the play structure and generate the entire playbook from a prompt)
+* Try **playbook generation** instead of task generation (use the "Generate a playbook" button to create the entire playbook from a prompt)
 * Experiment with different prompt variations to see what gives you the best suggestions
 * Simplify complex multi-task prompts into separate single-task prompts
 * The learning objectives remain the same: understanding how to work with AI-assisted Ansible development
@@ -53,7 +53,7 @@ Different services in this lab use different credentials:
 
 * **Automation Controller:** `admin` / `ansible123!`
 * **Gitea (Git Repository):** `gitea` / `gitea`
-* **VS Code & RHEL System:** Access via browser tabs (no login required)
+* **VS Code:** Access via browser tab (no login required)
 ====
 
 ---
@@ -111,7 +111,10 @@ Now you will enable Ansible Lightspeed in VS Code and connect it to the trial se
 
 === Step 1: Open VS Code and Enable Lightspeed Settings
 
-.   **Open the VS Code tab** at the top of your lab environment.
+.   **Access VS Code:**
+    * VS Code opens automatically as the first tab when you start the lab
+    * If you need to reopen it, click the **VS Code** tab at the top of your lab environment
+    * Note: Clicking the VS Code tab may open it in a new browser tab
 
 .   **Navigate to the Ansible extension settings:**
     * Click the **Extensions** icon on the left sidebar
@@ -129,6 +132,11 @@ Now you will enable Ansible Lightspeed in VS Code and connect it to the trial se
 [IMPORTANT]
 ====
 Please ensure you configure these settings in the VS Code **Workspace** tab, not the User tab.
+====
+
+[NOTE]
+====
+If VS Code prompts you to **Reload Window** to update the extensions, click the **Reload Window** button to apply the changes.
 ====
 
 === Step 2: Connect to Ansible Lightspeed Service
