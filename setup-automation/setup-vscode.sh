@@ -242,6 +242,20 @@ if [ -f "${COCKPIT_SOLUTION}" ]; then
     echo "  Updated task name in ${COCKPIT_SOLUTION}"
 fi
 
+# Update ansible-navigator.yml files to add mode: stdout
+echo "Updating ansible-navigator.yml files to use stdout mode..."
+for navigator_file in \
+    "/home/rhel/${REPO_NAME}/playbooks/infra/install_cockpit/ansible-navigator.yml" \
+    "/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/ansible-navigator.yml" \
+    "/home/rhel/${REPO_NAME}/playbooks/cloud/aws/ansible-navigator.yml" \
+    "/home/rhel/${REPO_NAME}/playbooks/cloud/azure/ansible-navigator.yml"
+do
+    if [ -f "${navigator_file}" ]; then
+        sudo -u rhel bash -c "echo '  mode: stdout' >> ${navigator_file}"
+        echo "  Added mode: stdout to ${navigator_file}"
+    fi
+done
+
 # Commit and push .gitignore and updated inventory files to remote
 echo "Committing and pushing configuration updates..."
 cd /home/rhel/${REPO_NAME}
