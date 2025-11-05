@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# Configure secondary network interface for PostgreSQL communication
+nmcli connection add type ethernet con-name eth1 ifname eth1 ipv4.addresses 192.168.1.12/24 ipv4.method manual connection.autoconnect yes
+nmcli connection up eth1
+echo "192.168.1.10 control.lab control" >> /etc/hosts
+echo "192.168.1.11 netbox.lab netbox" >> /etc/hosts
+echo "192.168.1.12 devtools.lab devtools" >> /etc/hosts
+
 curl -k  -L https://${SATELLITE_URL}/pub/katello-server-ca.crt -o /etc/pki/ca-trust/source/anchors/${SATELLITE_URL}.ca.crt
 update-ca-trust
 rpm -Uhv https://${SATELLITE_URL}/pub/katello-ca-consumer-latest.noarch.rpm
@@ -26,7 +34,7 @@ EOF
 systemctl start code-server
 #Enable linger for the user `rhel`
 loginctl enable-linger rhel
-dnf install ansible-core nano git -y
+dnf install ansible-core nano git python3-firewall -y
 
 # Set Python 3.11 as the default python3 using alternatives
 echo "Setting Python 3.11 as default python3..."
@@ -180,7 +188,7 @@ else
     echo "  Warning: ${APACHE_INVENTORY} not found"
 fi
 
-# Update postgresql/pgadmin inventory file for the new lab platform (target control VM)
+# Update postgresql/pgadmin inventory file for the new lab platform (target vscode VM via secondary network)
 echo "Updating postgresql/pgadmin playbook inventory..."
 PGSQL_INVENTORY="/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml"
 if [ -f "${PGSQL_INVENTORY}" ]; then
@@ -190,8 +198,8 @@ all:
   children:
     rhel:
       hosts:
-        control:
-          ansible_host: control.lab
+        devtools:
+          ansible_host: devtools.lab
   vars:
     ansible_user: rhel
     ansible_password: ansible123!
@@ -204,20 +212,99 @@ else
     echo "  Warning: ${PGSQL_INVENTORY} not found"
 fi
 
+# Remove firewall task from PostgreSQL playbooks (firewalld is disabled on vscode VM)
+echo "Removing firewall tasks from PostgreSQL playbooks..."
+PGSQL_DEMO="/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml"
+PGSQL_SOLUTION="/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/solution_install_pgsql_pgadmin.yml"
+
+if [ -f "${PGSQL_DEMO}" ]; then
+    sudo -u rhel sed -i '/Allow the traffic through the firewall/,/immediate: true/d' "${PGSQL_DEMO}"
+    echo "  Removed firewall task from ${PGSQL_DEMO}"
+fi
+
+if [ -f "${PGSQL_SOLUTION}" ]; then
+    sudo -u rhel sed -i '/Allow the traffic through the firewall/,/immediate: true/d' "${PGSQL_SOLUTION}"
+    echo "  Removed firewall task from ${PGSQL_SOLUTION}"
+fi
+
+# Update cockpit task name to include "directory" at the end for better Lightspeed suggestions
+echo "Updating cockpit playbook task names..."
+COCKPIT_DEMO="/home/rhel/${REPO_NAME}/playbooks/infra/install_cockpit/demo_install_cockpit.yml"
+COCKPIT_SOLUTION="/home/rhel/${REPO_NAME}/playbooks/infra/install_cockpit/solution_install_cockpit.yml"
+
+if [ -f "${COCKPIT_DEMO}" ]; then
+    sudo -u rhel sed -i 's/Copy cockpit\.conf\.j2 to \/etc\/cockpit$/Copy cockpit.conf.j2 to \/etc\/cockpit directory/g' "${COCKPIT_DEMO}"
+    echo "  Updated task name in ${COCKPIT_DEMO}"
+fi
+
+if [ -f "${COCKPIT_SOLUTION}" ]; then
+    sudo -u rhel sed -i 's/Copy cockpit\.conf\.j2 to \/etc\/cockpit$/Copy cockpit.conf.j2 to \/etc\/cockpit directory/g' "${COCKPIT_SOLUTION}"
+    echo "  Updated task name in ${COCKPIT_SOLUTION}"
+fi
+
+# Update ansible-navigator.yml files to add mode: stdout
+echo "Updating ansible-navigator.yml files to use stdout mode..."
+for navigator_file in \
+    "/home/rhel/${REPO_NAME}/playbooks/infra/install_cockpit/ansible-navigator.yml" \
+    "/home/rhel/${REPO_NAME}/playbooks/infra/install_pgsql_and_pgadmin/ansible-navigator.yml" \
+    "/home/rhel/${REPO_NAME}/playbooks/cloud/aws/ansible-navigator.yml" \
+    "/home/rhel/${REPO_NAME}/playbooks/cloud/azure/ansible-navigator.yml"
+do
+    if [ -f "${navigator_file}" ]; then
+        sudo -u rhel bash -c "echo '  mode: stdout' >> ${navigator_file}"
+        echo "  Added mode: stdout to ${navigator_file}"
+    fi
+done
+
 # Commit and push .gitignore and updated inventory files to remote
 echo "Committing and pushing configuration updates..."
 cd /home/rhel/${REPO_NAME}
 sudo -u rhel git add .gitignore inventory.yml \
     playbooks/infra/install_cockpit/inventory/inventory.yml \
     playbooks/infra/install_apache/inventory/inventory.yml \
-    playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml
-sudo -u rhel git commit -m "Update inventory and gitignore for new lab platform" || true
+    playbooks/infra/install_pgsql_and_pgadmin/inventory/inventory.yml \
+    playbooks/infra/install_cockpit/demo_install_cockpit.yml \
+    playbooks/infra/install_cockpit/solution_install_cockpit.yml \
+    playbooks/infra/install_pgsql_and_pgadmin/demo_install_pgsql_pgadmin.yml \
+    playbooks/infra/install_pgsql_and_pgadmin/solution_install_pgsql_pgadmin.yml \
+    playbooks/infra/install_cockpit/ansible-navigator.yml \
+    playbooks/infra/install_pgsql_and_pgadmin/ansible-navigator.yml \
+    playbooks/cloud/aws/ansible-navigator.yml \
+    playbooks/cloud/azure/ansible-navigator.yml
+sudo -u rhel git commit -m "Update inventory, playbooks, and ansible-navigator config for new lab platform" || true
 sudo -u rhel git push origin devel || true
 
 # Pull execution environment image from Quay
 echo "Pulling execution environment image from Quay..."
 EE_IMAGE="quay.io/acme_corp/lightspeed-101_ee:latest"
 sudo -u rhel podman pull ${EE_IMAGE}
+
+# Configure cloud provider environment variables for rhel user
+echo "Configuring cloud provider environment variables for rhel user..."
+sudo -u rhel tee /home/rhel/.cloud_env > /dev/null << CLOUD_ENV_EOF
+# AWS credentials for cloud playbooks
+export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+
+# Azure credentials for cloud playbooks
+# Map from platform variable names to Azure module expected names
+export AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION}"
+export AZURE_TENANT="${AZURE_TENANT}"
+export AZURE_CLIENT_ID="${AZURE_CLIENT_ID}"
+export AZURE_SECRET="${AZURE_PASSWORD}"
+export AZURE_RESOURCE_GROUP="${AZURE_RESOURCEGROUP}"
+CLOUD_ENV_EOF
+
+# Add sourcing of cloud env to .bashrc if not already present
+if ! grep -q ".cloud_env" /home/rhel/.bashrc; then
+    echo "" | sudo -u rhel tee -a /home/rhel/.bashrc > /dev/null
+    echo "# Source cloud provider credentials" | sudo -u rhel tee -a /home/rhel/.bashrc > /dev/null
+    echo "[ -f ~/.cloud_env ] && source ~/.cloud_env" | sudo -u rhel tee -a /home/rhel/.bashrc > /dev/null
+fi
+
+# Note: Cloud environment variables are fetched by setup-control.sh via reverse SSH
+# No need to push them here - control node will pull them when needed
 
 echo "Dev machine setup complete!"
 echo "Repository cloned to: /home/rhel/${REPO_NAME}"

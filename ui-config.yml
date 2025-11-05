@@ -24,14 +24,16 @@ antora:
       solveButton: false
 
 tabs:
+  - name: VS Code
+    url: https://vscode-${guid}.${domain}/?folder=/home/rhel/acme_corp
+    external: true
   - name: Ansible Automation Platform
     url: https://control-${guid}.${domain}/
-  - name: gitea
-    url: https://gitea-${guid}.${domain}/
-  - name: VS Code
-    url: https://vscode-${guid}.${domain}
-    external: true
   - name: Cockpit
     url: https://cockpit-${guid}.${domain}/
-  - name: Cloud (AWS)
+  - name: PgAdmin
+    url: https://pgadmin-${guid}.${domain}/
+  - name: AWS/Azure
     url: /cloud
+  - name: gitea
+    url: https://gitea-${guid}.${domain}/
